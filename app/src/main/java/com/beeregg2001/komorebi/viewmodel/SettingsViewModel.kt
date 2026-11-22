@@ -22,6 +22,7 @@ import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -789,6 +790,30 @@ class SettingsViewModel @Inject constructor(
             settingsRepository.saveString(
                 SettingsRepository.FAVORITE_BASEBALL_TEAMS,
                 gson.toJson(teams)
+            )
+        }
+    }
+
+    /**
+     * ★ パッチ (Komorebi-fork): お気に入りチャンネルを保存する。
+     * 多選ダイアログは Set で返すため、登録順はここで復元する:
+     * 既存の登録順を保ったまま残ったものを先に、新規分はチャンネル一覧順に後ろへ足す。
+     */
+    fun updateFavoriteChannels(selected: Set<String>, orderedChannelIds: List<String>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentJson = settingsRepository.favoriteChannels.first()
+            val current: List<String> = try {
+                val listType = object : TypeToken<List<String>>() {}.type
+                gson.fromJson<List<String>>(currentJson, listType) ?: emptyList()
+            } catch (e: Exception) {
+                emptyList()
+            }
+            val kept = current.filter { it in selected }
+            val added = orderedChannelIds.filter { it in selected && it !in kept }
+            val merged = (kept + added).take(SettingsRepository.FAVORITE_CHANNEL_MAX)
+            settingsRepository.saveString(
+                SettingsRepository.FAVORITE_CHANNELS,
+                gson.toJson(merged)
             )
         }
     }

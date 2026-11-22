@@ -41,6 +41,8 @@ class SettingPreferences(
     val defaultPostCommand: String,
     val postRecordingBatchList: List<PostRecordingBatch>,
     val favoriteBaseballTeams: Set<String>,
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (Channel.uniqueId の集合。順序は保存値側で管理)
+    val favoriteChannels: Set<String>,
     val geminiApiKey: String,
     val geminiApiKeyStatus: String,
     val enableAiNormalization: String,
@@ -80,6 +82,17 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         try {
             val type = object : TypeToken<Set<String>>() {}.type
             gson.fromJson<Set<String>>(favoriteTeamsJson, type) ?: emptySet()
+        } catch (e: Exception) {
+            emptySet()
+        }
+    }
+
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (ダイアログ表示用に Set で持つ)
+    val favoriteChannelsJson = repository.favoriteChannels.collectAsState(initial = "[]").value
+    val favoriteChannelsSet = remember(favoriteChannelsJson) {
+        try {
+            val type = object : TypeToken<List<String>>() {}.type
+            gson.fromJson<List<String>>(favoriteChannelsJson, type)?.toSet() ?: emptySet()
         } catch (e: Exception) {
             emptySet()
         }
@@ -126,6 +139,7 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         defaultPostCommand = repository.defaultPostCommand.collectAsState(initial = "").value,
         postRecordingBatchList = batchList,
         favoriteBaseballTeams = favoriteTeams,
+        favoriteChannels = favoriteChannelsSet,
         geminiApiKey = repository.geminiApiKey.collectAsState(initial = "").value,
         geminiApiKeyStatus = repository.geminiApiKeyStatus.collectAsState(initial = "").value,
         enableAiNormalization = repository.enableAiNormalization.collectAsState(initial = "OFF").value,

@@ -144,6 +144,39 @@ class HomeViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (Channel.uniqueId の登録順リスト)。
+    // ホームの「前回視聴したチャンネル」行の左端に常駐させるために使う。
+    val favoriteChannels: StateFlow<List<String>> = settingsRepository.favoriteChannels
+        .map { json ->
+            try {
+                val listType = object : TypeToken<List<String>>() {}.type
+                val list: List<String>? = Gson().fromJson(json, listType)
+                list ?: emptyList()
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** ★ パッチ (Komorebi-fork): お気に入りの登録/解除 (上限 FAVORITE_CHANNEL_MAX 件)。 */
+    fun toggleFavoriteChannel(channel: Channel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val current = favoriteChannels.value
+            val uid = channel.uniqueId
+            val updated = when {
+                uid in current -> current - uid
+                current.size >= SettingsRepository.FAVORITE_CHANNEL_MAX -> current
+                else -> current + uid
+            }
+            if (updated != current) {
+                settingsRepository.saveString(
+                    SettingsRepository.FAVORITE_CHANNELS,
+                    Gson().toJson(updated)
+                )
+            }
+        }
+    }
+
     private val _favoriteBaseballGames =
         MutableStateFlow<List<Pair<String, List<BaseballGameInfo>>>>(emptyList())
     val favoriteBaseballGames: StateFlow<List<Pair<String, List<BaseballGameInfo>>>> =
