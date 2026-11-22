@@ -200,6 +200,9 @@ fun HomeLauncherScreen(
 
     val favoriteBaseballTeams by homeViewModel.favoriteBaseballTeams.collectAsState()
     val favoriteBaseballGames by homeViewModel.favoriteBaseballGames.collectAsState()
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (uniqueId の登録順リスト)
+    val favoriteChannelIds by homeViewModel.favoriteChannels.collectAsState()
+    val favoriteChannelKeySet = remember(favoriteChannelIds) { favoriteChannelIds.toSet() }
     val baseballDateOffset by homeViewModel.baseballDateOffset.collectAsState()
 
     val backendType by homeViewModel.backendType.collectAsState()
@@ -243,6 +246,19 @@ fun HomeLauncherScreen(
             } ?: savedChannel
         }
     }
+
+    // ★ パッチ (Komorebi-fork): お気に入りを「前回視聴したチャンネル」行の左端に常駐させる。
+    // お気に入り (登録順) + 履歴 (お気に入りと重複する局を除く) をマージし、行全体は最大15件。
+    // 履歴が0件でもお気に入りがあれば行が表示される。
+    val mergedLastChannels =
+        remember(translatedLastChannels, displayFlatChannels, favoriteChannelIds) {
+            val favChannels = favoriteChannelIds.mapNotNull { uid ->
+                displayFlatChannels.find { it.uniqueId == uid }
+            }
+            val favUids = favChannels.map { it.uniqueId }.toSet()
+            val recents = translatedLastChannels.filterNot { it.uniqueId in favUids }
+            (favChannels + recents).take(15)
+        }
 
     LaunchedEffect(tabs.size) {
         if (ui.selectedTabIndex >= tabs.size) {
@@ -898,7 +914,11 @@ fun HomeLauncherScreen(
 
                     when (currentTabLabel) {
                         "ホーム" -> HomeContents(
-                            lastWatchedChannels = translatedLastChannels,
+                            lastWatchedChannels = mergedLastChannels,
+                            favoriteChannelKeys = favoriteChannelKeySet,
+                            onChannelLongClick = { ch ->
+                                homeViewModel.toggleFavoriteChannel(ch)
+                            },
                             watchHistory = ui.watchHistory,
                             hotChannels = ui.hotChannels,
                             upcomingReserves = ui.upcomingReserves,
@@ -975,7 +995,11 @@ fun HomeLauncherScreen(
                                 timeFormat = timeFormat,
                                 isPiPMode = hasActivePlayer,
                                 aiFocusReturnTick = if (currentTabLabel == "ライブ") aiFocusReturnTick else 0,
-                                onAiReturnConsumed = onAiReturnConsumed
+                                onAiReturnConsumed = onAiReturnConsumed,
+                                favoriteChannelIds = favoriteChannelKeySet,
+                                onChannelLongClick = { ch ->
+                                    homeViewModel.toggleFavoriteChannel(ch)
+                                }
                             )
                             // ライブタブが表示に必要とするチャンネル一覧・グループ化データは
                             // 呼び出し元で取得済みのものが groupedChannels として渡ってくる。
