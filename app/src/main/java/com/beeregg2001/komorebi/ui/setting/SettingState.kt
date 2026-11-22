@@ -53,6 +53,10 @@ class SettingPreferences(
     val omakaseExcludeWatched: Boolean,
     // ★ パッチ (Komorebi-fork): MPEG-2 ソフトウェアデコード
     val mpeg2SoftwareDecode: Boolean,
+    // ★ パッチ (Komorebi-fork): MPEG-2 デコード診断 (候補と使用デコーダ)
+    val mpeg2AllCandidates: String,
+    val mpeg2SoftwareCandidates: String,
+    val mpeg2UsedDecoder: String,
     val geminiApiKey: String,
     val geminiApiKeyStatus: String,
     val enableAiNormalization: String,
@@ -118,6 +122,10 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         }
     }
 
+    // ★ パッチ (Komorebi-fork): MPEG-2 デコード診断 (プロセス内メモリから取得)
+    val mpeg2Diag =
+        com.beeregg2001.komorebi.common.Mpeg2DecodeDiagnostics.state.collectAsState().value
+
     return SettingPreferences(
         backendType = repository.backendType.collectAsState(initial = "KONOMITV").value,
         edcbIp = repository.edcbIp.collectAsState(initial = "").value,
@@ -157,6 +165,9 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         omakaseGenre = repository.omakaseGenre.collectAsState(initial = "バラエティ").value,
         omakaseExcludeWatched = repository.omakaseExcludeWatched.collectAsState(initial = true).value,
         mpeg2SoftwareDecode = repository.mpeg2SoftwareDecode.collectAsState(initial = true).value,
+        mpeg2AllCandidates = mpeg2Diag.allCandidates,
+        mpeg2SoftwareCandidates = mpeg2Diag.softwareCandidates,
+        mpeg2UsedDecoder = mpeg2Diag.usedDecoder,
         geminiApiKey = repository.geminiApiKey.collectAsState(initial = "").value,
         geminiApiKeyStatus = repository.geminiApiKeyStatus.collectAsState(initial = "").value,
         enableAiNormalization = repository.enableAiNormalization.collectAsState(initial = "OFF").value,

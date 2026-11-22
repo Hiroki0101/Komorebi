@@ -23,6 +23,7 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.extractor.metadata.id3.PrivFrame
+import com.beeregg2001.komorebi.common.Mpeg2DecodeDiagnostics
 import com.beeregg2001.komorebi.common.Mpeg2SoftwareCodecSelector
 import com.beeregg2001.komorebi.data.model.LivePlayerConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -155,6 +156,7 @@ class LivePlayerFactory @Inject constructor(
                         initializationDurationMs: Long
                     ) {
                         Log.i("KomorebiV8", "Live video decoder: $decoderName")
+                        Mpeg2DecodeDiagnostics.recordUsedDecoder("ライブ", decoderName)
                     }
                 })
             }

@@ -44,6 +44,11 @@ object Mpeg2SoftwareCodecSelector : MediaCodecSelector {
             TAG,
             "MPEG-2 decoders: all=${infos.map { it.name }} software=${software.map { it.name }}"
         )
+        // ★ パッチ (Komorebi-fork): v8.2 設定画面でも見られるよう診断ホルダへも記録
+        Mpeg2DecodeDiagnostics.recordCandidates(
+            infos.map { it.name },
+            software.map { it.name }
+        )
         return software
     }
 }
