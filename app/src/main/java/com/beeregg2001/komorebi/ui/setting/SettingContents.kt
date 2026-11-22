@@ -84,6 +84,10 @@ fun GeneralSettingsContent(
     onToggleOmakaseExcludeWatched: (Boolean) -> Unit,
     omakaseGenreR: FocusRequester,
     omakaseExcludeR: FocusRequester,
+    // ★ パッチ (Komorebi-fork): MPEG-2 ソフトウェアデコードのトグル
+    mpeg2SoftwareDecode: Boolean,
+    onToggleMpeg2SoftwareDecode: (Boolean) -> Unit,
+    mpeg2SwDecodeR: FocusRequester,
     sidebarR: FocusRequester,
     onClick: (FocusRequester) -> Unit
 ) {
@@ -250,9 +254,26 @@ fun GeneralSettingsContent(
                     .focusProperties {
                         left = sidebarR
                         up = omakaseGenreR
-                        down = FocusRequester.Cancel
+                        down = mpeg2SwDecodeR
                     },
                 onClick = { onClick(omakaseExcludeR); onToggleOmakaseExcludeWatched(!omakaseExcludeWatched) }
+            )
+        }
+
+        // ★ パッチ (Komorebi-fork): 映像デコードの設定 (BS の MPEG-2 の乱れ対策)
+        SettingsSection("映像デコード") {
+            SettingItem(
+                title = "MPEG-2をソフトウェアデコード",
+                value = if (mpeg2SoftwareDecode) "ON" else "OFF",
+                icon = Icons.Default.Memory,
+                modifier = Modifier
+                    .focusRequester(mpeg2SwDecodeR)
+                    .focusProperties {
+                        left = sidebarR
+                        up = omakaseExcludeR
+                        down = FocusRequester.Cancel
+                    },
+                onClick = { onClick(mpeg2SwDecodeR); onToggleMpeg2SoftwareDecode(!mpeg2SoftwareDecode) }
             )
         }
     }
