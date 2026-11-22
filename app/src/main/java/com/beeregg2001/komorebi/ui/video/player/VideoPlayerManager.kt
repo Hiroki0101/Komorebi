@@ -99,6 +99,8 @@ fun rememberManagedExoPlayer(
     // ★ 追加: Cloudflare Zero Trust サービストークン (未設定なら空Map)
     cfAccessHeaders: Map<String, String> = emptyMap(),
     onFatalError: (String) -> Unit = {},
+    // ★ パッチ (Komorebi-fork): 再生が最後まで終わったときの通知 (おまかせ再生用)
+    onPlaybackEnded: () -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ): ManagedPlayerHandles {
     val captionDecoder = remember { NativeCaptionDecoder() }
@@ -407,6 +409,8 @@ fun rememberManagedExoPlayer(
                             playerRetryCount = 0
                         } else if (playbackState == Player.STATE_ENDED) {
                             clearSubtitle()
+                            // ★ パッチ (Komorebi-fork): 終了通知 (おまかせ再生の自動復帰用)
+                            onPlaybackEnded()
                         }
                     }
 
