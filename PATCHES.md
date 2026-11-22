@@ -210,8 +210,11 @@
   なければ許容範囲との実機感想
 - v9.1: カクツキ対策として、SMB 画面由来のフレーム破棄系オプション
   （--drop-late-frames / --skip-frames / --avcodec-hurry-up）を除去。
-  実機確認待ち。それでも残る場合の次の一手はデインターレース
-  （:deinterlace=1 + deinterlace-mode=yadif 等）
+  実機結果: カクツキは残った（フレーム破棄は主因ではなかった）
+- v9.2: 残る容疑2つをまとめて対策。(1) クロック平滑化を殺していた
+  --clock-jitter=0 / --clock-synchro=0 を除去（VLC 既定に戻す）。
+  (2) デインターレースを有効化（:deinterlace=1、
+  :deinterlace-mode=yadif2x で 59.94p 出力）。実機確認待ち
 - 背景: v8 の結論（Streamer にはアプリから使える MPEG-2 ソフトデコーダが
   MediaCodec にも FFmpeg 拡張にも無い）を受け、Channels アプリで同症状
   （Google TV Streamer + MPEG-2 で映像だけ固まる）がプレイヤー側の

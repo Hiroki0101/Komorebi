@@ -93,13 +93,12 @@ fun VlcOriginalPlayerScreen(
     if (streamUrl.isNotEmpty()) {
         val vlcComponents = remember(streamUrl) {
             // ★ v9.1: SMB 画面から引き継いだフレーム破棄系オプション
-            // (--drop-late-frames / --skip-frames / --avcodec-hurry-up) を外した。
-            // ソフトウェアデコードでは処理が追いつかない瞬間にフレームを
-            // 捨ててしまい、カクツキの主因になっていた疑いが強いため
+            // (--drop-late-frames / --skip-frames / --avcodec-hurry-up) を外した
+            // ★ v9.2: クロック平滑化を殺す --clock-jitter=0 / --clock-synchro=0 も
+            // 外した (HTTP 配信では提示タイミングが荒れてカクツキの原因になる。
+            // ローカルファイル前提の SMB 画面では無害だったもの)
             val options = arrayListOf(
                 "--network-caching=3000",
-                "--clock-jitter=0",
-                "--clock-synchro=0",
                 "--avcodec-skiploopfilter=4",
                 "--avcodec-threads=0"
             )
@@ -109,6 +108,11 @@ fun VlcOriginalPlayerScreen(
                 // ★ 実験の核心: ハードウェアデコードを無効化し、FFmpeg の
                 // ソフトウェアデコード (mpeg2video) で再生させる
                 setHWDecoderEnabled(false, false)
+                // ★ v9.2: デインターレース有効化 (yadif2x = フィールドレート
+                // 59.94p 出力)。インターレースのまま weave 表示すると動きが
+                // 段差状に見え、カクツキとして知覚されるため
+                addOption(":deinterlace=1")
+                addOption(":deinterlace-mode=yadif2x")
                 if (initialPositionMs > 0) {
                     addOption(":start-time=${initialPositionMs / 1000f}")
                 }
