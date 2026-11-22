@@ -305,14 +305,22 @@
   フォールバックし、設定値そのものは書き換わらない。録画中・非 TS
   コンテナの除外判定、他バックエンド、H.264/H.265 録画には影響しない。
   設定は端末ごとなので Streamer でだけ ON にする想定
-- ライブ対応（2026-11-23 追加）: 当初は録画のみで、ユーザーの指摘で
-  ライブにも広げた。LivePlayerViewModel.fetchAvailableQualities の
-  KONOMITV 判定で、トグル ON のときはライブの選択肢からも original を
-  外す（チャンネル単位のコーデック情報が無いため、ライブは全チャンネル
-  一律。地デジも変換になる点は割り切り）
+- ライブ対応（2026-11-23 追加 → 同日 v11.1 でチャンネル単位化）:
+  当初は録画のみで、ユーザーの指摘でライブにも広げた。当初版はライブ
+  全チャンネル一律だったが、ユーザーの案でチャンネル単位の選択式に変更。
+  設定→一般→映像デコードに「変換対象チャンネル」行を追加し、
+  お気に入り登録と同じ多選ダイアログで選ぶ。保存は uniqueId の JSON
+  配列（キー `mpeg2_transcode_channels`）。未保存（キー自体が無い）の
+  ときは BS 全チャンネルを既定の対象とし、保存済みの空配列は「対象なし」
+  として区別する。LivePlayerScreen 側で、トグル ON かつ表示中チャンネル
+  が対象のときだけ VM の画質一覧から original を差し引いて使う
+  （ザッピングにも追随）。このとき保存済みライブ画質が original でも
+  設定値の書き換えはしない（トグルを切れば元に戻る）。二画面表示は
+  元々 original が強制ダウングレードされるため対象判定はメイン画面の
+  チャンネル基準で割り切る。録画側は v11 のままコーデック判定
 - 変更ファイル: data/repository/SettingsRepository.kt、
   viewmodel/SettingsViewModel.kt、viewmodel/VideoPlayerViewModel.kt、
-  viewmodel/LivePlayerViewModel.kt、
+  ui/live/LivePlayerScreen.kt、
   ui/setting/SettingState.kt、ui/setting/SettingScreen.kt、
   ui/setting/SettingContents.kt
 
