@@ -230,7 +230,25 @@ fun LivePlayerScreen(
     val dualStatus by livePlayerViewModel.dualSseStatus.collectAsState()
     val dualDetail by livePlayerViewModel.dualSseDetail.collectAsState()
 
-    val availableQualities by livePlayerViewModel.availableQualities.collectAsState(initial = StreamQuality.DEFAULT_QUALITIES)
+    val rawAvailableQualities by livePlayerViewModel.availableQualities.collectAsState(initial = StreamQuality.DEFAULT_QUALITIES)
+
+    // ★ パッチ (Komorebi-fork): v11.1 ライブの変換対象チャンネル判定。
+    // トグル ON かつ表示中チャンネルが対象なら original を候補から外す。
+    // 対象の保存値が未設定 (null) のときは BS 全チャンネルを既定とする
+    val mpeg2TranscodedPlayback by settingsViewModel.mpeg2TranscodedPlayback.collectAsState()
+    val mpeg2TranscodeChannels by settingsViewModel.mpeg2TranscodeChannels.collectAsState()
+    val transcodeTargetIds = remember(mpeg2TranscodeChannels, displayFlatChannels) {
+        mpeg2TranscodeChannels?.toSet()
+            ?: displayFlatChannels.filter { it.type == "BS" }.map { it.uniqueId }.toSet()
+    }
+    val isTranscodeTargetChannel = currentChannelItem.uniqueId in transcodeTargetIds
+    val availableQualities = remember(rawAvailableQualities, mpeg2TranscodedPlayback, isTranscodeTargetChannel) {
+        if (mpeg2TranscodedPlayback && isTranscodeTargetChannel) {
+            rawAvailableQualities.filterNot { it.value == "original" }
+        } else {
+            rawAvailableQualities
+        }
+    }
     val isQualitiesLoaded by livePlayerViewModel.isQualitiesLoaded.collectAsState()
     val loadedQualitiesKey by livePlayerViewModel.loadedQualitiesKey.collectAsState()
 
@@ -262,7 +280,7 @@ fun LivePlayerScreen(
         livePlayerViewModel.fetchAvailableQualities(ps.currentStreamSource, ps.isEdcbDirect)
     }
 
-    LaunchedEffect(availableQualities, isQualitiesLoaded, currentLiveQualityStr, loadedQualitiesKey, isSourceInitialized) {
+    LaunchedEffect(availableQualities, isQualitiesLoaded, currentLiveQualityStr, loadedQualitiesKey, isSourceInitialized, mpeg2TranscodedPlayback, isTranscodeTargetChannel) {
         // ★ 修正: ソース確定前(初期値KONOMITV)に取得した一覧や、別ソース向けの一覧で照合すると
         // 保存済み画質が「一覧に無い」と誤判定され、先頭の画質で上書き保存されてしまう。
         // 現在のソース向けに読み込んだ一覧であることを確認してから照合する。
@@ -278,7 +296,14 @@ fun LivePlayerScreen(
                 )
                 val fallback = availableQualities.first()
                 ps.currentQuality = fallback
-                livePlayerViewModel.saveLiveQuality(fallback.value)
+                // ★ パッチ (Komorebi-fork): v11.1 変換対象チャンネルで original が候補から
+                // 外れただけのフォールバックでは、保存済みのライブ画質を書き換えない
+                // (トグルを切る・対象から外せば元の original に戻れるように)
+                val excludedByTranscode = mpeg2TranscodedPlayback && isTranscodeTargetChannel &&
+                    currentLiveQualityStr == "original"
+                if (!excludedByTranscode) {
+                    livePlayerViewModel.saveLiveQuality(fallback.value)
+                }
             }
         }
     }
