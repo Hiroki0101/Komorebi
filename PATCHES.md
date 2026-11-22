@@ -247,10 +247,15 @@
   ffmpeg_jni.cc に映像用 JNI は存在しない）。Google は Media3 で FFmpeg
   映像デコードを実装したことがなく、この路線は存在しないと確定
 - 代替として、Channels が同症状を直したのと同じ mpv コアを採用。
-  ライブラリは Maven Central の `io.github.midasvo:libmpv:1.3.0`
-  （Findroid が使う libmpv-android 系。mpv 0.42 + FFmpeg 9.1、
-  armeabi-v7a 含む全 ABI の AAR、実物で mpeg2video の含有と
-  MPVLib API を確認済み）。実効ライセンスは GPL-3.0（個人フォークのため実害なし）
+  当初 Maven Central の `io.github.midasvo:libmpv:1.3.0` を使ったが、
+  この系統（midasvo 1.1.0〜1.3.0、jdtech 1.1.0）はすべて
+  minCompileSdk=37 で、compileSdk 35 の本プロジェクトではビルド不可と判明
+  （2026-11-22 実機ビルドで checkReleaseAarMetadata エラー）。
+  そのため要件の緩い `dev.jdtech.mpv:libmpv:0.5.1`（libmpv-android 系の
+  旧版、静的 API 版）に変更。実物で mpeg2video の含有を確認済み。
+  あわせて、libmpv と libVLC が両方同梱する libc++_shared.so の重複を
+  packaging の pickFirsts で解決（mergeReleaseNativeLibs 対策）。
+  実効ライセンスは GPL 系（個人フォークのため実害なし）
 - 仕様: v9 の実験トグルの行き先を VLC 画面から新規
   `MpvOriginalPlayerScreen` に差し替え（VLC 画面のコードは温存）。
   mpv のオプションは hwdec=no（ソフトウェアデコード固定）、vo=gpu、
