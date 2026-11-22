@@ -703,9 +703,10 @@ fun MainRootScreen(
                                     timeFormat = timeFormat
                                 )
                             } else if (state.selectedProgram != null) {
-                                // ★ パッチ (Komorebi-fork): v9 実験 ON の間は録画再生を VLC プレイヤーへ振り分ける
+                                // ★ パッチ (Komorebi-fork): v9/v10 実験 ON の間は録画再生を実験プレイヤーへ振り分ける
+                                // (v10 でエンジンを VLC から mpv に差し替え)
                                 if (vlcOriginalExperiment) {
-                                    com.beeregg2001.komorebi.ui.video.player.VlcOriginalPlayerScreen(
+                                    com.beeregg2001.komorebi.ui.video.player.MpvOriginalPlayerScreen(
                                         program = state.selectedProgram!!,
                                         serverIp = konomiIp,
                                         serverPort = konomiPort,
