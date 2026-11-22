@@ -71,9 +71,14 @@
   切り捨てられるため実機で見えなかった（2026-11-22 にユーザー報告）。
   `HomeHeroInfo.nextProgramText` という独立フィールドに変え、ヒーロー内に
   専用の1行（アクセント色・太字）で必ず表示する方式に変更
-- 変更ファイル（2件）： `ui/home/components/HomeSections.kt`、
-  `ui/home/components/HomeHeroDashboard.kt`
-- 状態： 実機確認待ち（v4.1）
+- v4.2 修正： この環境では KonomiTV のチャンネルAPIが `program_following` を
+  返していないらしく（EPG には全チャンネルの番組が揃っていることをユーザーが確認）、
+  データ自体が届いていなかった。ホームが保持している共有EPGから「次の番組」の
+  索引（`HomeViewModel.nextProgramByChannelKey`、キー＝networkId_serviceId）を
+  作り、API の following が無い場合の補完に使うよう変更（API 優先は維持）
+- 変更ファイル（3件）： `ui/home/components/HomeSections.kt`、
+  `ui/home/components/HomeHeroDashboard.kt`、`viewmodel/HomeViewModel.kt`
+- 状態： 実機確認待ち（v4.2）
 
 ## v5： 録画再生の先読みバッファ制限（150MB → 48MB）
 
