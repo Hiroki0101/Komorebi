@@ -128,6 +128,9 @@ fun SettingsScreen(
                 FocusRequester(),
                 FocusRequester(),
                 // ★ 追加: 「アップデートを確認する」用に1個増強
+                FocusRequester(),
+                // ★ パッチ (Komorebi-fork): 孤児スイープのトグル/最終結果用に2個増強
+                FocusRequester(),
                 FocusRequester()
             ),
             listOf(
@@ -389,6 +392,20 @@ fun SettingsScreen(
                             itemFocusRequesters[0][2],
                             itemFocusRequesters[0][3],
                             itemFocusRequesters[0][4],
+                            prefs.orphanSweepEnabled,
+                            prefs.orphanSweepLastRunAt,
+                            prefs.orphanSweepLastDeleted,
+                            prefs.orphanSweepLastAborted,
+                            {
+                                scope.launch {
+                                    repository.saveBoolean(
+                                        SettingsRepository.ORPHAN_SWEEP_ENABLED,
+                                        it
+                                    )
+                                }
+                            },
+                            itemFocusRequesters[0][6],
+                            itemFocusRequesters[0][7],
                             categoryFocusRequesters[0]
                         ) { uiState.restoreFocusRequester = it; uiState.restoreCategoryIndex = 0 }
 
