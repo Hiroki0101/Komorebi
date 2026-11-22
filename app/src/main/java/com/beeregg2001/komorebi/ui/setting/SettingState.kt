@@ -57,6 +57,8 @@ class SettingPreferences(
     val mpeg2AllCandidates: String,
     val mpeg2SoftwareCandidates: String,
     val mpeg2UsedDecoder: String,
+    // ★ パッチ (Komorebi-fork): v9 実験トグル
+    val vlcOriginalExperiment: Boolean,
     val geminiApiKey: String,
     val geminiApiKeyStatus: String,
     val enableAiNormalization: String,
@@ -168,6 +170,7 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         mpeg2AllCandidates = mpeg2Diag.allCandidates,
         mpeg2SoftwareCandidates = mpeg2Diag.softwareCandidates,
         mpeg2UsedDecoder = mpeg2Diag.usedDecoder,
+        vlcOriginalExperiment = repository.vlcOriginalExperiment.collectAsState(initial = false).value,
         geminiApiKey = repository.geminiApiKey.collectAsState(initial = "").value,
         geminiApiKeyStatus = repository.geminiApiKeyStatus.collectAsState(initial = "").value,
         enableAiNormalization = repository.enableAiNormalization.collectAsState(initial = "OFF").value,

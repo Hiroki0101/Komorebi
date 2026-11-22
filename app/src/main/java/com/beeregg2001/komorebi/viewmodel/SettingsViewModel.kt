@@ -211,6 +211,12 @@ class SettingsViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         true
     )
+    // ★ パッチ (Komorebi-fork): v9 実験 (MainRoot のプレイヤー振り分けから参照される)
+    val vlcOriginalExperiment: StateFlow<Boolean> = settingsRepository.vlcOriginalExperiment.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        false
+    )
     val epgStationIp: StateFlow<String> = settingsRepository.epgStationIp.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
