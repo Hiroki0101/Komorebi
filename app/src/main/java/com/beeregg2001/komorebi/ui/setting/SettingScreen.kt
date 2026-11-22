@@ -160,6 +160,8 @@ fun SettingsScreen(
                 FocusRequester(),
                 FocusRequester(),
                 FocusRequester(),
+                FocusRequester(),
+                // ★ パッチ (Komorebi-fork): 「お気に入りチャンネル」用に1個増強
                 FocusRequester()
             ),
             listOf(
@@ -750,12 +752,14 @@ fun SettingsScreen(
                             prefs.excludePaid,
                             prefs.pickupTime,
                             prefs.startupTab,
+                            prefs.favoriteChannels.size,
                             itemFocusRequesters[4][0],
                             itemFocusRequesters[4][1],
                             itemFocusRequesters[4][2],
                             itemFocusRequesters[4][3],
                             itemFocusRequesters[4][4],
                             itemFocusRequesters[4][5],
+                            itemFocusRequesters[4][6],
                             categoryFocusRequesters[4],
                             {
                                 uiState.activeDialog = SettingDialogState.Selection(
@@ -889,6 +893,19 @@ fun SettingsScreen(
                                     repository.saveString(
                                         SettingsRepository.EXCLUDE_PAID_BROADCASTS,
                                         if (prefs.excludePaid == "ON") "OFF" else "ON"
+                                    )
+                                }
+                            },
+                            {
+                                // ★ パッチ (Komorebi-fork): お気に入りチャンネルの多選ダイアログ
+                                uiState.activeDialog = SettingDialogState.MultiSelection(
+                                    "お気に入りチャンネルの選択（最大8件）",
+                                    flatChannels.map { it.name to it.uniqueId },
+                                    prefs.favoriteChannels
+                                ) {
+                                    viewModel.updateFavoriteChannels(
+                                        it,
+                                        flatChannels.map { ch -> ch.uniqueId }
                                     )
                                 }
                             }
