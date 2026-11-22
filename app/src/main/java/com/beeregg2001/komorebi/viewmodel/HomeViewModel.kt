@@ -130,6 +130,32 @@ class HomeViewModel @Inject constructor(
 
     private val _sharedEpgData = MutableStateFlow<List<EpgChannelWrapper>>(emptyList())
 
+    // ★ パッチ (Komorebi-fork): チャンネル情報に program_following が含まれない環境
+    // (KonomiTV のチャンネルAPI等) 向けに、共有EPGから「次の番組」を引くための索引。
+    // キーは Channel.uniqueId と同じ "networkId_serviceId"。
+    val nextProgramByChannelKey: StateFlow<Map<String, EpgProgram>> =
+        _sharedEpgData.map { wrappers ->
+            val now = OffsetDateTime.now()
+            wrappers.mapNotNull { wrapper ->
+                val sorted = wrapper.programs.sortedBy { it.start_time }
+                fun parseOrNull(value: String): OffsetDateTime? =
+                    try { OffsetDateTime.parse(value) } catch (e: Exception) { null }
+                val presentIndex = sorted.indexOfFirst { program ->
+                    val start = parseOrNull(program.start_time)
+                    val end = parseOrNull(program.end_time)
+                    start != null && end != null && !now.isBefore(start) && now.isBefore(end)
+                }
+                val following = if (presentIndex >= 0) {
+                    sorted.getOrNull(presentIndex + 1)
+                } else {
+                    sorted.firstOrNull { program ->
+                        parseOrNull(program.start_time)?.isAfter(now) == true
+                    }
+                }
+                following?.let { "${wrapper.channel.network_id}_${wrapper.channel.service_id}" to it }
+            }.toMap()
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     val updateState: StateFlow<UpdateState> = appUpdater.updateState
 
     val favoriteBaseballTeams: StateFlow<Set<String>> = settingsRepository.favoriteBaseballTeams
