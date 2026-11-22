@@ -201,6 +201,42 @@ class RecordViewModel @Inject constructor(
         _programDetail.value = null
     }
 
+    // ★ パッチ (Komorebi-fork): おまかせ再生。
+    // 入口 (ホーム先頭カード / 録画一覧トップバー) から requestOmakase() を呼び、
+    // 結果は omakasePick 経由で MainRootScreen が拾って再生を開始する。
+    sealed interface OmakasePick {
+        data class Found(val program: RecordedProgram, val resumePositionSec: Double) : OmakasePick
+        data object Empty : OmakasePick
+    }
+
+    private val _omakasePick = MutableStateFlow<OmakasePick?>(null)
+    val omakasePick: StateFlow<OmakasePick?> = _omakasePick.asStateFlow()
+
+    fun requestOmakase() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val genre = settingsRepository.omakaseGenre.first()
+            val excludeWatched = settingsRepository.omakaseExcludeWatched.first()
+            val lastId = settingsRepository.omakaseLastProgramId.first().toIntOrNull()
+            val pick = com.beeregg2001.komorebi.data.OmakaseSelector.pick(
+                programDao, genre, excludeWatched, lastId
+            )
+            if (pick == null) {
+                _omakasePick.value = OmakasePick.Empty
+            } else {
+                settingsRepository.saveString(
+                    SettingsRepository.OMAKASE_LAST_PROGRAM_ID, pick.entity.id.toString()
+                )
+                _omakasePick.value = OmakasePick.Found(
+                    RecordDataMapper.toDomainModel(pick.entity), pick.resumePositionSec
+                )
+            }
+        }
+    }
+
+    fun consumeOmakasePick() {
+        _omakasePick.value = null
+    }
+
     val recentRecordings: StateFlow<List<RecordedProgram>> = programDao.getRecentRecordingsFlow()
         .map { entities -> entities.map { RecordDataMapper.toDomainModel(it) } }
         .stateIn(

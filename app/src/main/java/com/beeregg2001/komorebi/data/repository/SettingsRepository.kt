@@ -84,6 +84,12 @@ class SettingsRepository @Inject constructor(
         val ORPHAN_SWEEP_LAST_RUN_AT = stringPreferencesKey("orphan_sweep_last_run_at")
         val ORPHAN_SWEEP_LAST_DELETED = stringPreferencesKey("orphan_sweep_last_deleted")
         val ORPHAN_SWEEP_LAST_ABORTED = booleanPreferencesKey("orphan_sweep_last_aborted")
+
+        // ★ パッチ (Komorebi-fork): おまかせ再生の設定。
+        // OMAKASE_GENRE は EpgGenre.major への部分一致で使う ("すべて" は絞り込みなし)。
+        val OMAKASE_GENRE = stringPreferencesKey("omakase_genre")
+        val OMAKASE_EXCLUDE_WATCHED = booleanPreferencesKey("omakase_exclude_watched")
+        val OMAKASE_LAST_PROGRAM_ID = stringPreferencesKey("omakase_last_program_id")
         val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         val GEMINI_API_KEY_STATUS = stringPreferencesKey("gemini_api_key_status")
         val ENABLE_AI_NORMALIZATION = stringPreferencesKey("enable_ai_normalization")
@@ -205,6 +211,13 @@ class SettingsRepository @Inject constructor(
         context.dataStore.data.map { it[ORPHAN_SWEEP_LAST_DELETED] ?: "" }
     val orphanSweepLastAborted: Flow<Boolean> =
         context.dataStore.data.map { it[ORPHAN_SWEEP_LAST_ABORTED] ?: false }
+    // ★ パッチ (Komorebi-fork): おまかせ再生 (ジャンル既定はバラエティ、視聴済み除外が既定)
+    val omakaseGenre: Flow<String> =
+        context.dataStore.data.map { it[OMAKASE_GENRE] ?: "バラエティ" }
+    val omakaseExcludeWatched: Flow<Boolean> =
+        context.dataStore.data.map { it[OMAKASE_EXCLUDE_WATCHED] ?: true }
+    val omakaseLastProgramId: Flow<String> =
+        context.dataStore.data.map { it[OMAKASE_LAST_PROGRAM_ID] ?: "" }
     val geminiApiKey: Flow<String> = context.dataStore.data.map { it[GEMINI_API_KEY] ?: "" }
 
     // ★ 追加: GeminiのAPIキーが実際に有効か検証した結果("VALID"/"INVALID"/"UNVERIFIED"/未検証時は空文字)
