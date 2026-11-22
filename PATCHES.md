@@ -122,7 +122,7 @@
   `ui/video/RecordListState.kt`、`ui/video/components/RecordScreenTopBar.kt`、
   `ui/video/RecordListScreen.kt`、`ui/setting/SettingState.kt`、
   `ui/setting/SettingContents.kt`、`ui/setting/SettingScreen.kt`
-- 状態： 実機確認待ち
+- 状態： ビルド・実機確認済み（2026-11-22、ランダム再生の成功をユーザーが確認）
 
 ## ビルド・更新手順
 
