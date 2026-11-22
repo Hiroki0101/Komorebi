@@ -302,6 +302,17 @@ fun GeneralSettingsContent(
                 enabled = false,
                 onClick = {}
             )
+            // ★ パッチ (Komorebi-fork): v10 mpv 実験ログ (表示のみ・クラッシュ後も残る到達点)
+            val mpvDiagContext = androidx.compose.ui.platform.LocalContext.current
+            val mpvLastStep = androidx.compose.runtime.remember {
+                com.beeregg2001.komorebi.common.MpvExperimentLog.readLast(mpvDiagContext)
+            }
+            SettingItem(
+                title = "mpv実験ログ (最終到達点)",
+                value = mpvLastStep.ifEmpty { "未実行" },
+                enabled = false,
+                onClick = {}
+            )
             // ★ パッチ (Komorebi-fork): v9/v10 実験 (ON の間は録画再生が常に original を実験プレイヤーで再生する)
             SettingItem(
                 title = "original画質をmpvで再生 (実験)",
