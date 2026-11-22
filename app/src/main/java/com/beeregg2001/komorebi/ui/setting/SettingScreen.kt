@@ -456,6 +456,9 @@ fun SettingsScreen(
                                 }
                             },
                             itemFocusRequesters[0][10],
+                            prefs.mpeg2AllCandidates,
+                            prefs.mpeg2SoftwareCandidates,
+                            prefs.mpeg2UsedDecoder,
                             categoryFocusRequesters[0]
                         ) { uiState.restoreFocusRequester = it; uiState.restoreCategoryIndex = 0 }
 
