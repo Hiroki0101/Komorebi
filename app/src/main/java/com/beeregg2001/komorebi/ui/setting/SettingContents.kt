@@ -69,6 +69,14 @@ fun GeneralSettingsContent(
     forceSyncR: FocusRequester,
     clearChannelR: FocusRequester,
     clearHistoryR: FocusRequester,
+    // ★ パッチ (Komorebi-fork): 孤児スイープのトグルと最終実行結果
+    orphanSweepEnabled: Boolean,
+    orphanSweepLastRunAt: Long,
+    orphanSweepLastDeleted: Int,
+    orphanSweepLastAborted: Boolean,
+    onToggleOrphanSweep: (Boolean) -> Unit,
+    orphanSweepR: FocusRequester,
+    orphanResultR: FocusRequester,
     sidebarR: FocusRequester,
     onClick: (FocusRequester) -> Unit
 ) {
@@ -76,6 +84,13 @@ fun GeneralSettingsContent(
         remember { java.text.SimpleDateFormat("yyyy/MM/dd HH:mm", java.util.Locale.getDefault()) }
     val lastSyncStr =
         if (lastSyncedAt > 0L) dateFormat.format(java.util.Date(lastSyncedAt)) else "未同期"
+    // ★ パッチ (Komorebi-fork): 孤児スイープの最終実行結果の表示文
+    val orphanSweepLastStr =
+        if (orphanSweepLastRunAt > 0L) {
+            val base = dateFormat.format(java.util.Date(orphanSweepLastRunAt))
+            if (orphanSweepLastAborted) "$base (安全策で見送り)"
+            else "$base (削除 $orphanSweepLastDeleted 件)"
+        } else "未実行"
 
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Text(
@@ -144,9 +159,36 @@ fun GeneralSettingsContent(
                     .focusProperties {
                         left = sidebarR
                         up = dbInfoR
-                        down = clearChannelR
+                        down = orphanSweepR
                     },
                 onClick = { onClick(forceSyncR); onForceSync() }
+            )
+            // ★ パッチ (Komorebi-fork): 孤児スイープのトグルと最終実行結果
+            SettingItem(
+                title = "消えた録画を自動で一覧から削除",
+                value = if (orphanSweepEnabled) "ON" else "OFF",
+                icon = Icons.Default.DeleteSweep,
+                modifier = Modifier
+                    .focusRequester(orphanSweepR)
+                    .focusProperties {
+                        left = sidebarR
+                        up = forceSyncR
+                        down = orphanResultR
+                    },
+                onClick = { onClick(orphanSweepR); onToggleOrphanSweep(!orphanSweepEnabled) }
+            )
+            SettingItem(
+                title = "最終クリーンアップ",
+                value = orphanSweepLastStr,
+                icon = Icons.Default.Sync,
+                modifier = Modifier
+                    .focusRequester(orphanResultR)
+                    .focusProperties {
+                        left = sidebarR
+                        up = orphanSweepR
+                        down = clearChannelR
+                    },
+                onClick = { onClick(orphanResultR) }
             )
         }
 
@@ -159,7 +201,7 @@ fun GeneralSettingsContent(
                     .focusRequester(clearChannelR)
                     .focusProperties {
                         left = sidebarR
-                        up = forceSyncR
+                        up = orphanResultR
                         down = clearHistoryR
                     },
                 onClick = { onClick(clearChannelR); onClearChannel() })
