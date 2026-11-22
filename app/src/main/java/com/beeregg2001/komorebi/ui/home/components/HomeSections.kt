@@ -92,6 +92,56 @@ fun NavigationLinkButton(label: String, icon: ImageVector, onClick: () -> Unit) 
     }
 }
 
+// ★ パッチ (Komorebi-fork): おまかせ再生の入口 (ホーム先頭に常設する横長ボタン)。
+// 押すと録画DBからランダムに1本選んで再生が始まる (選出は RecordViewModel 側)。
+@Composable
+fun OmakaseEntryCard(
+    genreName: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    focusRequester: FocusRequester? = null
+) {
+    val colors = KomorebiTheme.colors
+    Box(modifier = modifier.padding(horizontal = 48.dp)) {
+        Button(
+            onClick = onClick,
+            colors = ButtonDefaults.colors(
+                containerColor = colors.accent.copy(alpha = 0.15f),
+                contentColor = colors.textPrimary,
+                focusedContainerColor = colors.accent,
+                focusedContentColor = Color.White
+            ),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (focusRequester != null) Modifier.focusRequester(focusRequester)
+                    else Modifier
+                )
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Shuffle, null, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "おまかせ再生",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = if (genreName == "すべて") {
+                            "録画の中からランダムで1本"
+                        } else {
+                            "「$genreName」からランダムで1本"
+                        },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

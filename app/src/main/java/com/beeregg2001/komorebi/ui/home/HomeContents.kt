@@ -139,21 +139,16 @@ fun HomeContents(
         }
     }
 
-    val topSection =
-        remember(lastWatchedChannels, hotChannels, genrePickup, watchHistory, upcomingReserves) {
-            when {
-                lastWatchedChannels.isNotEmpty() -> "lastWatched"
-                hotChannels.isNotEmpty() -> "hot"
-                genrePickup.isNotEmpty() -> "pickup"
-                watchHistory.isNotEmpty() -> "history"
-                upcomingReserves.isNotEmpty() -> "upcoming"
-                else -> ""
-            }
-        }
+    // ★ パッチ (Komorebi-fork): 先頭におまかせ再生カードを常設するため、最上段は常にそれ。
+    // (従来の各セクションは topSection の場合だけ受けていた上キー→タブ移動と
+    //  初期フォーカスを、おまかせカードが引き受ける)
+    val topSection = "omakase"
 
     val availableSections =
         remember(lastWatchedChannels, hotChannels, genrePickup, watchHistory, upcomingReserves) {
             val list = mutableListOf<String>()
+            // ★ パッチ (Komorebi-fork): おまかせ再生は常設で先頭 (LazyColumn の item 順と一致させる)
+            list.add("omakase")
             if (lastWatchedChannels.isNotEmpty()) list.add("lastWatched")
             if (hotChannels.isNotEmpty()) list.add("hot")
             if (genrePickup.isNotEmpty()) list.add("pickup")
@@ -229,6 +224,16 @@ fun HomeContents(
                 contentPadding = PaddingValues(bottom = 80.dp),
                 verticalArrangement = Arrangement.spacedBy(32.dp)
             ) {
+                // ★ パッチ (Komorebi-fork): おまかせ再生の入口 (ホーム先頭に常設)
+                item(key = "section_omakase") {
+                    val omakaseGenre by homeViewModel.omakaseGenreLabel.collectAsState()
+                    OmakaseEntryCard(
+                        genreName = omakaseGenre,
+                        onClick = { recordViewModel.requestOmakase() },
+                        modifier = upToTabModifier,
+                        focusRequester = externalFocusRequester
+                    )
+                }
                 if (lastWatchedChannels.isNotEmpty()) {
                     item(key = "section_last_watched") {
                         LastWatchedSection(
