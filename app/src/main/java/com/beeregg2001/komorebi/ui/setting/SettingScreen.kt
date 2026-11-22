@@ -137,7 +137,9 @@ fun SettingsScreen(
                 FocusRequester(),
                 // ★ パッチ (Komorebi-fork): MPEG-2 ソフトウェアデコード用に1個増強
                 FocusRequester(),
-                // ★ パッチ (Komorebi-fork): v9 実験トグル用に1個増強
+                // ★ パッチ (Komorebi-fork): v9 実験トグル用に1個増強 (現 v11 トグル)
+                FocusRequester(),
+                // ★ パッチ (Komorebi-fork): v11.1 変換対象チャンネル用に1個増強
                 FocusRequester()
             ),
             listOf(
@@ -471,6 +473,25 @@ fun SettingsScreen(
                                 }
                             },
                             itemFocusRequesters[0][11],
+                            prefs.mpeg2TranscodeChannels,
+                            {
+                                // ★ パッチ (Komorebi-fork): v11.1 変換対象チャンネルの多選ダイアログ。
+                                // 未設定のときは BS 全チャンネルを初期チェックにする
+                                val initialSelection = prefs.mpeg2TranscodeChannels
+                                    ?: flatChannels.filter { it.type == "BS" }
+                                        .map { it.uniqueId }.toSet()
+                                uiState.activeDialog = SettingDialogState.MultiSelection(
+                                    "変換対象チャンネルの選択",
+                                    flatChannels.map { it.name to it.uniqueId },
+                                    initialSelection
+                                ) {
+                                    viewModel.updateMpeg2TranscodeChannels(
+                                        it,
+                                        flatChannels.map { ch -> ch.uniqueId }
+                                    )
+                                }
+                            },
+                            itemFocusRequesters[0][12],
                             categoryFocusRequesters[0]
                         ) { uiState.restoreFocusRequester = it; uiState.restoreCategoryIndex = 0 }
 
