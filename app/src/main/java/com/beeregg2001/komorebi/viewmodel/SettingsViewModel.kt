@@ -205,6 +205,12 @@ class SettingsViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         "API"
     )
+    // ★ パッチ (Komorebi-fork): MPEG-2 ソフトウェアデコード (映像プレイヤーから参照される)
+    val mpeg2SoftwareDecode: StateFlow<Boolean> = settingsRepository.mpeg2SoftwareDecode.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        true
+    )
     val epgStationIp: StateFlow<String> = settingsRepository.epgStationIp.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
