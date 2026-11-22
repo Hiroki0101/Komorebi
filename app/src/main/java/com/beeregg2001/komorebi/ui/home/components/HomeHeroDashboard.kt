@@ -35,7 +35,9 @@ data class HomeHeroInfo(
     val channelId: String? = null, // ★ 追加: チャンネルロゴを非同期で解決するためのID
     val isThumbnail: Boolean = false,
     val tag: String = "",
-    val progress: Float? = null
+    val progress: Float? = null,
+    // ★ パッチ (Komorebi-fork): 次の番組の1行表示 (説明文に埋もれないよう独立フィールド)
+    val nextProgramText: String? = null
 )
 
 @Composable
@@ -236,6 +238,19 @@ fun HomeHeroDashboard(
                             )
                         }
                     }
+                }
+
+                // ★ パッチ (Komorebi-fork): 次の番組を独立した行で表示する
+                // (説明文は最大3行で切り捨てられるため、末尾に足す方式では見えない)
+                if (!targetState.nextProgramText.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = targetState.nextProgramText,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = colors.accent,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
