@@ -302,9 +302,9 @@ fun GeneralSettingsContent(
                 enabled = false,
                 onClick = {}
             )
-            // ★ パッチ (Komorebi-fork): v9 実験 (ON の間は録画再生が常に original を VLC で再生する)
+            // ★ パッチ (Komorebi-fork): v9/v10 実験 (ON の間は録画再生が常に original を実験プレイヤーで再生する)
             SettingItem(
-                title = "original画質をVLCで再生 (実験)",
+                title = "original画質をmpvで再生 (実験)",
                 value = if (vlcOriginalExperiment) "ON" else "OFF",
                 icon = Icons.Default.Science,
                 modifier = Modifier
