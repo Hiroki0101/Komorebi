@@ -38,9 +38,8 @@ private const val TAG = "HomeContents"
 @Composable
 fun HomeContents(
     lastWatchedChannels: List<Channel>,
-    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (uniqueId 集合) と長押しトグル
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (uniqueId 集合)
     favoriteChannelKeys: Set<String> = emptySet(),
-    onChannelLongClick: (Channel) -> Unit = {},
     watchHistory: List<KonomiHistoryProgram>,
     hotChannels: List<UiChannelState>,
     upcomingReserves: List<ReserveItem>,
@@ -235,7 +234,6 @@ fun HomeContents(
                         LastWatchedSection(
                             channels = lastWatchedChannels,
                             favoriteChannelKeys = favoriteChannelKeys,
-                            onChannelLongClick = onChannelLongClick,
                             groupedChannels = groupedChannels,
                             getLogoUrl = getLogoUrl,
                             shouldCropLogo = shouldCropLogo,

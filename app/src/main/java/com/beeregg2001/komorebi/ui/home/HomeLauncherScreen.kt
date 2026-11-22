@@ -916,9 +916,6 @@ fun HomeLauncherScreen(
                         "ホーム" -> HomeContents(
                             lastWatchedChannels = mergedLastChannels,
                             favoriteChannelKeys = favoriteChannelKeySet,
-                            onChannelLongClick = { ch ->
-                                homeViewModel.toggleFavoriteChannel(ch)
-                            },
                             watchHistory = ui.watchHistory,
                             hotChannels = ui.hotChannels,
                             upcomingReserves = ui.upcomingReserves,
@@ -996,10 +993,7 @@ fun HomeLauncherScreen(
                                 isPiPMode = hasActivePlayer,
                                 aiFocusReturnTick = if (currentTabLabel == "ライブ") aiFocusReturnTick else 0,
                                 onAiReturnConsumed = onAiReturnConsumed,
-                                favoriteChannelIds = favoriteChannelKeySet,
-                                onChannelLongClick = { ch ->
-                                    homeViewModel.toggleFavoriteChannel(ch)
-                                }
+                                favoriteChannelIds = favoriteChannelKeySet
                             )
                             // ライブタブが表示に必要とするチャンネル一覧・グループ化データは
                             // 呼び出し元で取得済みのものが groupedChannels として渡ってくる。
