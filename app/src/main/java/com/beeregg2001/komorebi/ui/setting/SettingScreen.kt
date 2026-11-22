@@ -134,6 +134,8 @@ fun SettingsScreen(
                 FocusRequester(),
                 // ★ パッチ (Komorebi-fork): おまかせ再生の設定用に2個増強
                 FocusRequester(),
+                FocusRequester(),
+                // ★ パッチ (Komorebi-fork): MPEG-2 ソフトウェアデコード用に1個増強
                 FocusRequester()
             ),
             listOf(
@@ -444,6 +446,16 @@ fun SettingsScreen(
                             },
                             itemFocusRequesters[0][8],
                             itemFocusRequesters[0][9],
+                            prefs.mpeg2SoftwareDecode,
+                            {
+                                scope.launch {
+                                    repository.saveBoolean(
+                                        SettingsRepository.MPEG2_SOFTWARE_DECODE,
+                                        it
+                                    )
+                                }
+                            },
+                            itemFocusRequesters[0][10],
                             categoryFocusRequesters[0]
                         ) { uiState.restoreFocusRequester = it; uiState.restoreCategoryIndex = 0 }
 
