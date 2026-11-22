@@ -305,8 +305,14 @@
   フォールバックし、設定値そのものは書き換わらない。録画中・非 TS
   コンテナの除外判定、他バックエンド、H.264/H.265 録画には影響しない。
   設定は端末ごとなので Streamer でだけ ON にする想定
+- ライブ対応（2026-11-23 追加）: 当初は録画のみで、ユーザーの指摘で
+  ライブにも広げた。LivePlayerViewModel.fetchAvailableQualities の
+  KONOMITV 判定で、トグル ON のときはライブの選択肢からも original を
+  外す（チャンネル単位のコーデック情報が無いため、ライブは全チャンネル
+  一律。地デジも変換になる点は割り切り）
 - 変更ファイル: data/repository/SettingsRepository.kt、
   viewmodel/SettingsViewModel.kt、viewmodel/VideoPlayerViewModel.kt、
+  viewmodel/LivePlayerViewModel.kt、
   ui/setting/SettingState.kt、ui/setting/SettingScreen.kt、
   ui/setting/SettingContents.kt
 

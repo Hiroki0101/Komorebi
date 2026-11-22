@@ -318,7 +318,11 @@ class LivePlayerViewModel @Inject constructor(
                     // 正式リリース版では422で拒否される。しかもサーバーのバージョン文字列だけでは
                     // masterと直近の正式リリースを区別できないため、実際に再生を試みて拒否された
                     // ことが確認済み(KonomiOriginalQualityGate)であれば選択肢自体から除外する。
-                    _availableQualities.value = if (KonomiOriginalQualityGate.isUnsupported()) {
+                    // ★ パッチ (Komorebi-fork): v11 ライブにも同じトグルを効かせる。
+                    // ON のときはライブでも original を選択肢から外し、保存されたライブ画質が
+                    // original でも変換画質 (1080p-60fps) へフォールバックさせる。
+                    val mpeg2TranscodedLive = settingsRepository.mpeg2TranscodedPlayback.first()
+                    _availableQualities.value = if (KonomiOriginalQualityGate.isUnsupported() || mpeg2TranscodedLive) {
                         StreamQuality.DEFAULT_QUALITIES.filterNot { it.value == "original" }
                     } else {
                         StreamQuality.DEFAULT_QUALITIES
