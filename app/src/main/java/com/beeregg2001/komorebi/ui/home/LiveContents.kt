@@ -83,9 +83,8 @@ fun LiveContent(
     isPiPMode: Boolean = false,
     aiFocusReturnTick: Int = 0,
     onAiReturnConsumed: () -> Unit = {},
-    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (uniqueId 集合) と長押しトグル
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (uniqueId 集合、バッジ表示用)
     favoriteChannelIds: Set<String> = emptySet(),
-    onChannelLongClick: (Channel) -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val liveRows by channelViewModel.liveRows.collectAsState()
@@ -278,7 +277,6 @@ fun LiveContent(
                                         channelViewModel = channelViewModel,
                                         onClick = { onChannelClick(uiState.channel) },
                                         isFavorite = uiState.channel.uniqueId in favoriteChannelIds,
-                                        onLongClick = { onChannelLongClick(uiState.channel) },
                                         modifier = Modifier
                                             .then(
                                                 if (rowIndex == 0 && index == 0) Modifier.focusRequester(
@@ -571,9 +569,8 @@ fun CompactChannelCard(
     channelViewModel: ChannelViewModel,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    // ★ パッチ (Komorebi-fork): お気に入りバッジと長押しトグル
-    isFavorite: Boolean = false,
-    onLongClick: (() -> Unit)? = null
+    // ★ パッチ (Komorebi-fork): お気に入りバッジ
+    isFavorite: Boolean = false
 ) {
     val colors = KomorebiTheme.colors
     var isFocused by remember { mutableStateOf(false) }
@@ -597,7 +594,6 @@ fun CompactChannelCard(
 
     Surface(
         onClick = onClick,
-        onLongClick = onLongClick,
         modifier = modifier
             .width(140.dp)
             .height(76.dp)
