@@ -58,7 +58,7 @@
 - 変更ファイル（5件）： `data/sync/RecordSyncEngine.kt`、
   `data/repository/SettingsRepository.kt`、`ui/setting/SettingState.kt`、
   `ui/setting/SettingContents.kt`、`ui/setting/SettingScreen.kt`
-- 状態： 実機確認待ち
+- 状態： ビルド・実機確認済み（2026-11-22）
 
 ## v4： お気に入り局の「次の番組」をヒーローに表示
 
