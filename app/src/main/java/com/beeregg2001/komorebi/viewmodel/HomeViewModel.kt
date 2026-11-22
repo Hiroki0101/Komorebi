@@ -158,25 +158,6 @@ class HomeViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /** ★ パッチ (Komorebi-fork): お気に入りの登録/解除 (上限 FAVORITE_CHANNEL_MAX 件)。 */
-    fun toggleFavoriteChannel(channel: Channel) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val current = favoriteChannels.value
-            val uid = channel.uniqueId
-            val updated = when {
-                uid in current -> current - uid
-                current.size >= SettingsRepository.FAVORITE_CHANNEL_MAX -> current
-                else -> current + uid
-            }
-            if (updated != current) {
-                settingsRepository.saveString(
-                    SettingsRepository.FAVORITE_CHANNELS,
-                    Gson().toJson(updated)
-                )
-            }
-        }
-    }
-
     private val _favoriteBaseballGames =
         MutableStateFlow<List<Pair<String, List<BaseballGameInfo>>>>(emptyList())
     val favoriteBaseballGames: StateFlow<List<Pair<String, List<BaseballGameInfo>>>> =
