@@ -461,11 +461,11 @@ fun SettingsScreen(
                             prefs.mpeg2AllCandidates,
                             prefs.mpeg2SoftwareCandidates,
                             prefs.mpeg2UsedDecoder,
-                            prefs.vlcOriginalExperiment,
+                            prefs.mpeg2TranscodedPlayback,
                             {
                                 scope.launch {
                                     repository.saveBoolean(
-                                        SettingsRepository.VLC_ORIGINAL_EXPERIMENT,
+                                        SettingsRepository.MPEG2_TRANSCODED_PLAYBACK,
                                         it
                                     )
                                 }
