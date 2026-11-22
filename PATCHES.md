@@ -60,6 +60,16 @@
   `ui/setting/SettingContents.kt`、`ui/setting/SettingScreen.kt`
 - 状態： 実機確認待ち
 
+## v4： お気に入り局の「次の番組」をヒーローに表示
+
+- ホームの「お気に入り・最近のチャンネル」行で、お気に入りカードにフォーカスしたとき、
+  ヒーローの説明文末尾に次の番組を1行追加する（例：`次: 19:00〜 『番組名』`）
+- お気に入り以外のカードは従来どおり。次の番組データが無い局では何も追加しない
+- データは既存の `Channel.programFollowing`（全バックエンドで取得済み）を使う。
+  時刻は `HH:mm` 固定表記
+- 変更ファイル（1件）： `ui/home/components/HomeSections.kt`
+- 状態： 実機確認待ち
+
 ## ビルド・更新手順
 
 1. Android Studio でこのフォークを開き、Update Project（Ctrl+T、Merge を選択）で
