@@ -770,6 +770,9 @@ fun RecordListScreen(
             searchOpenButtonFocusRequester = focuses.searchOpenButton,
             viewToggleButtonFocusRequester = focuses.viewToggleButton,
             sortButtonFocusRequester = focuses.sortButton, // ★ 追加
+            // ★ パッチ (Komorebi-fork): おまかせ再生 (選出結果は MainRootScreen が拾って再生する)
+            omakaseButtonFocusRequester = focuses.omakaseButton,
+            onOmakaseClick = { viewModel.requestOmakase() },
             onSearchQueryChange = { viewModel.updateSearchQuery(it) },
             onExecuteSearch = executeSearch,
             onBackPress = handleBackPress,
