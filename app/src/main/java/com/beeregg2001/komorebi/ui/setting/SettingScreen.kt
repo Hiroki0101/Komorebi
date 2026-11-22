@@ -131,6 +131,9 @@ fun SettingsScreen(
                 FocusRequester(),
                 // ★ パッチ (Komorebi-fork): 孤児スイープのトグル/最終結果用に2個増強
                 FocusRequester(),
+                FocusRequester(),
+                // ★ パッチ (Komorebi-fork): おまかせ再生の設定用に2個増強
+                FocusRequester(),
                 FocusRequester()
             ),
             listOf(
@@ -406,6 +409,41 @@ fun SettingsScreen(
                             },
                             itemFocusRequesters[0][6],
                             itemFocusRequesters[0][7],
+                            prefs.omakaseGenre,
+                            prefs.omakaseExcludeWatched,
+                            {
+                                uiState.activeDialog = SettingDialogState.Selection(
+                                    "おまかせ再生の対象ジャンル",
+                                    listOf(
+                                        "バラエティ" to "バラエティ",
+                                        "アニメ" to "アニメ",
+                                        "ドラマ" to "ドラマ",
+                                        "映画" to "映画",
+                                        "スポーツ" to "スポーツ",
+                                        "音楽" to "音楽",
+                                        "ドキュメンタリー" to "ドキュメンタリー",
+                                        "すべて" to "すべて"
+                                    ),
+                                    prefs.omakaseGenre
+                                ) {
+                                    scope.launch {
+                                        repository.saveString(
+                                            SettingsRepository.OMAKASE_GENRE,
+                                            it
+                                        )
+                                    }
+                                }
+                            },
+                            {
+                                scope.launch {
+                                    repository.saveBoolean(
+                                        SettingsRepository.OMAKASE_EXCLUDE_WATCHED,
+                                        it
+                                    )
+                                }
+                            },
+                            itemFocusRequesters[0][8],
+                            itemFocusRequesters[0][9],
                             categoryFocusRequesters[0]
                         ) { uiState.restoreFocusRequester = it; uiState.restoreCategoryIndex = 0 }
 
