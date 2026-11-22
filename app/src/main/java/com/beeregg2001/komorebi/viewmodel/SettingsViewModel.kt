@@ -217,6 +217,31 @@ class SettingsViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         false
     )
+
+    // ★ パッチ (Komorebi-fork): v11.1 ライブの変換対象チャンネル。
+    // null = 未設定 (使う側で BS 全チャンネルを既定とする)
+    val mpeg2TranscodeChannels: StateFlow<List<String>?> = settingsRepository.mpeg2TranscodeChannelsJson
+        .map { json ->
+            if (json.isEmpty()) null
+            else try {
+                val listType = object : TypeToken<List<String>>() {}.type
+                gson.fromJson<List<String>>(json, listType)
+            } catch (e: Exception) {
+                null
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** ★ パッチ (Komorebi-fork): v11.1 変換対象チャンネルを保存する (チャンネル一覧順に整列) */
+    fun updateMpeg2TranscodeChannels(selected: Set<String>, orderedChannelIds: List<String>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val merged = orderedChannelIds.filter { it in selected }
+            settingsRepository.saveString(
+                SettingsRepository.MPEG2_TRANSCODE_CHANNELS,
+                gson.toJson(merged)
+            )
+        }
+    }
     val epgStationIp: StateFlow<String> = settingsRepository.epgStationIp.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),

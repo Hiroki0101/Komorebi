@@ -95,6 +95,9 @@ class SettingsRepository @Inject constructor(
         val MPEG2_SOFTWARE_DECODE = booleanPreferencesKey("mpeg2_software_decode")
         // ★ パッチ (Komorebi-fork): v11: MPEG-2 録画は original 指定でも変換画質で再生 (Streamer 用)
         val MPEG2_TRANSCODED_PLAYBACK = booleanPreferencesKey("mpeg2_transcoded_playback")
+
+        // ★ パッチ (Komorebi-fork): v11.1: ライブの変換対象チャンネル (uniqueId の JSON 配列)
+        val MPEG2_TRANSCODE_CHANNELS = stringPreferencesKey("mpeg2_transcode_channels")
         val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         val GEMINI_API_KEY_STATUS = stringPreferencesKey("gemini_api_key_status")
         val ENABLE_AI_NORMALIZATION = stringPreferencesKey("enable_ai_normalization")
@@ -229,6 +232,11 @@ class SettingsRepository @Inject constructor(
     // ★ パッチ (Komorebi-fork): v11 トグル (既定 OFF)
     val mpeg2TranscodedPlayback: Flow<Boolean> =
         context.dataStore.data.map { it[MPEG2_TRANSCODED_PLAYBACK] ?: false }
+
+    // ★ パッチ (Komorebi-fork): v11.1 変換対象チャンネルの保存値 (生 JSON)。
+    // 未保存は空文字で表す (保存済みの空配列 "[]" = ユーザーが全て外した、と区別するため)
+    val mpeg2TranscodeChannelsJson: Flow<String> =
+        context.dataStore.data.map { it[MPEG2_TRANSCODE_CHANNELS] ?: "" }
     val geminiApiKey: Flow<String> = context.dataStore.data.map { it[GEMINI_API_KEY] ?: "" }
 
     // ★ 追加: GeminiのAPIキーが実際に有効か検証した結果("VALID"/"INVALID"/"UNVERIFIED"/未検証時は空文字)
