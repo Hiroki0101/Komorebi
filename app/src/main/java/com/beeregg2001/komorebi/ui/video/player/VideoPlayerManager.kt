@@ -48,6 +48,7 @@ import androidx.media3.extractor.ts.TsExtractor
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.exoplayer.upstream.DefaultAllocator
 import com.beeregg2001.komorebi.NativeLib
+import com.beeregg2001.komorebi.common.Mpeg2SoftwareCodecSelector
 import com.beeregg2001.komorebi.ui.live.DirectSubtitlePayloadReaderFactory
 import com.beeregg2001.komorebi.ui.subtitle.NativeCaptionCue
 import com.beeregg2001.komorebi.ui.subtitle.NativeCaptionDecoder
@@ -161,6 +162,8 @@ fun rememberManagedExoPlayer(
 
     val backendType by settingsViewModel.backendType.collectAsState()
     val edcbPlayMethod by settingsViewModel.edcbRecordPlayMethod.collectAsState()
+    // ★ パッチ (Komorebi-fork): v8 MPEG-2 ソフトウェアデコード (プレイヤー生成時に参照)
+    val mpeg2SoftwareDecode by settingsViewModel.mpeg2SoftwareDecode.collectAsState()
     val isEdcbDirect = (backendType == "EDCB" && edcbPlayMethod == "DIRECT")
 
     // ★ 修正: 下の exoPlayer は キー無しの remember{} で生成されるため、そのブロック内のラムダ
@@ -216,6 +219,10 @@ fun rememberManagedExoPlayer(
         val renderersFactory = DefaultRenderersFactory(context).apply {
             setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
             setEnableDecoderFallback(true)
+            // ★ パッチ (Komorebi-fork): v8 MPEG-2 のみソフトウェアデコーダに寄せる
+            if (mpeg2SoftwareDecode) {
+                setMediaCodecSelector(Mpeg2SoftwareCodecSelector)
+            }
         }
 
         val httpDataSourceFactory = DefaultHttpDataSource.Factory().apply {

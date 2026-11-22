@@ -21,6 +21,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.extractor.metadata.id3.PrivFrame
+import com.beeregg2001.komorebi.common.Mpeg2SoftwareCodecSelector
 import com.beeregg2001.komorebi.data.model.LivePlayerConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -44,6 +45,8 @@ class LivePlayerFactory @Inject constructor(
      */
     fun createExoPlayer(
         audioOutputMode: String,
+        // ★ パッチ (Komorebi-fork): v8 MPEG-2 をソフトウェアデコードするか (BS の映像の乱れ対策)
+        mpeg2SoftwareDecode: Boolean = false,
         isKonomiTvSource: () -> Boolean,
         onSubtitleDataReceived: (Long, ByteArray) -> Unit,
         onError: (PlaybackException) -> Unit
@@ -89,6 +92,10 @@ class LivePlayerFactory @Inject constructor(
         }.apply {
             setExtensionRendererMode(EXTENSION_RENDERER_MODE_PREFER)
             setEnableDecoderFallback(true)
+            // ★ パッチ (Komorebi-fork): v8 MPEG-2 のみソフトウェアデコーダに寄せる
+            if (mpeg2SoftwareDecode) {
+                setMediaCodecSelector(Mpeg2SoftwareCodecSelector)
+            }
         }
 
         // ライブ視聴に最適化したバッファ設定
