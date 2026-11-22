@@ -92,15 +92,16 @@ fun VlcOriginalPlayerScreen(
 
     if (streamUrl.isNotEmpty()) {
         val vlcComponents = remember(streamUrl) {
+            // ★ v9.1: SMB 画面から引き継いだフレーム破棄系オプション
+            // (--drop-late-frames / --skip-frames / --avcodec-hurry-up) を外した。
+            // ソフトウェアデコードでは処理が追いつかない瞬間にフレームを
+            // 捨ててしまい、カクツキの主因になっていた疑いが強いため
             val options = arrayListOf(
-                "--drop-late-frames",
-                "--skip-frames",
                 "--network-caching=3000",
                 "--clock-jitter=0",
                 "--clock-synchro=0",
                 "--avcodec-skiploopfilter=4",
-                "--avcodec-threads=0",
-                "--avcodec-hurry-up"
+                "--avcodec-threads=0"
             )
             val libVLC = LibVLC(context, options)
             val mediaPlayer = MediaPlayer(libVLC)

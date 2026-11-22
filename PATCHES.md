@@ -204,7 +204,14 @@
 
 ## v9: original 画質を VLC で再生（実験）
 
-- 状態: 実装済み・実機未確認（2026-11-22）
+- 状態: 実機確認済み（2026-11-22）。前に乱れた BS 録画が乱れ・固まりなく
+  再生できた。仮説（FFmpeg ソフトデコードなら MT8696 で MPEG-2 1080i が
+  通る）は実証。残課題はカクツキ（v9.1 で対策中）。発熱は長時間再生で
+  なければ許容範囲との実機感想
+- v9.1: カクツキ対策として、SMB 画面由来のフレーム破棄系オプション
+  （--drop-late-frames / --skip-frames / --avcodec-hurry-up）を除去。
+  実機確認待ち。それでも残る場合の次の一手はデインターレース
+  （:deinterlace=1 + deinterlace-mode=yadif 等）
 - 背景: v8 の結論（Streamer にはアプリから使える MPEG-2 ソフトデコーダが
   MediaCodec にも FFmpeg 拡張にも無い）を受け、Channels アプリで同症状
   （Google TV Streamer + MPEG-2 で映像だけ固まる）がプレイヤー側の
