@@ -90,6 +90,9 @@ class SettingsRepository @Inject constructor(
         val OMAKASE_GENRE = stringPreferencesKey("omakase_genre")
         val OMAKASE_EXCLUDE_WATCHED = booleanPreferencesKey("omakase_exclude_watched")
         val OMAKASE_LAST_PROGRAM_ID = stringPreferencesKey("omakase_last_program_id")
+
+        // ★ パッチ (Komorebi-fork): MPEG-2 のソフトウェアデコード (BS の映像の乱れ対策)
+        val MPEG2_SOFTWARE_DECODE = booleanPreferencesKey("mpeg2_software_decode")
         val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         val GEMINI_API_KEY_STATUS = stringPreferencesKey("gemini_api_key_status")
         val ENABLE_AI_NORMALIZATION = stringPreferencesKey("enable_ai_normalization")
@@ -218,6 +221,9 @@ class SettingsRepository @Inject constructor(
         context.dataStore.data.map { it[OMAKASE_EXCLUDE_WATCHED] ?: true }
     val omakaseLastProgramId: Flow<String> =
         context.dataStore.data.map { it[OMAKASE_LAST_PROGRAM_ID] ?: "" }
+    // ★ パッチ (Komorebi-fork): MPEG-2 ソフトウェアデコード (既定 ON)
+    val mpeg2SoftwareDecode: Flow<Boolean> =
+        context.dataStore.data.map { it[MPEG2_SOFTWARE_DECODE] ?: true }
     val geminiApiKey: Flow<String> = context.dataStore.data.map { it[GEMINI_API_KEY] ?: "" }
 
     // ★ 追加: GeminiのAPIキーが実際に有効か検証した結果("VALID"/"INVALID"/"UNVERIFIED"/未検証時は空文字)

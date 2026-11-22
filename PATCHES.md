@@ -124,6 +124,34 @@
   `ui/setting/SettingContents.kt`、`ui/setting/SettingScreen.kt`
 - 状態： ビルド・実機確認済み（2026-11-22、ランダム再生の成功をユーザーが確認）
 
+## v8: MPEG-2 ソフトウェアデコード（BS の映像の乱れ対策）
+
+- 背景： Google TV Streamer で BS の無変換（MPEG-2）視聴中、動きの激しい
+  場面で映像が乱れてそのまま固まる（音声は正常、チャンネル切替で復旧、
+  地デジでは発生しない）。切り分けの結果、録画再生（ファイル経路）でも
+  再現し、TVTest（PC のソフトデコード）では無事なことから、端末の
+  MPEG-2 ハードウェアデコーダが BS の高ビットレートのピークで破綻
+  していると判断した（release ビルドでも発生し、debug 負荷説は消えた）
+- 内容： `common/Mpeg2SoftwareCodecSelector`（新規）。MPEG-2 映像のとき
+  だけ、デコーダ候補からハードウェアデコーダを外してソフトウェア
+  デコーダのみを返す。ソフトウェアデコーダが無い端末では元の候補を
+  そのまま返し、再生不能にはしない。MPEG-2 以外には干渉しない
+- 適用先： ライブ（`LivePlayerFactory`、メイン／デュアル両方）と録画再生
+  （`VideoPlayerManager`）の両プレイヤー。設定が ON のときだけ
+  `setMediaCodecSelector` で差し込む
+- 設定： 設定→一般に「映像デコード」セクションを追加し、
+  「MPEG-2をソフトウェアデコード」ON/OFF（既定 ON）。保存キーは
+  DataStore の `mpeg2_software_decode`
+- 注意： ソフトウェアデコードは CPU 負荷と発熱が上がる。コマ落ちする
+  ようなら設定で OFF に戻す（従来動作）。録画再生側はプレイヤー生成時に
+  設定値を読むため、変更は次の再生から反映される
+- 変更ファイル： `common/Mpeg2SoftwareCodecSelector.kt`（新規）、
+  `data/repository/SettingsRepository.kt`、`viewmodel/SettingsViewModel.kt`、
+  `viewmodel/LivePlayerViewModel.kt`、`ui/live/LivePlayerFactory.kt`、
+  `ui/video/player/VideoPlayerManager.kt`、`ui/setting/SettingState.kt`、
+  `ui/setting/SettingContents.kt`、`ui/setting/SettingScreen.kt`
+- 状態： 実機確認待ち（BS の動きの激しい番組で乱れが消えるか）
+
 ## ビルド・更新手順
 
 1. Android Studio でこのフォークを開き、Update Project（Ctrl+T、Merge を選択）で

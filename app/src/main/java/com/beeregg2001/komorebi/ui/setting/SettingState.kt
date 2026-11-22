@@ -51,6 +51,8 @@ class SettingPreferences(
     // ★ パッチ (Komorebi-fork): おまかせ再生の設定
     val omakaseGenre: String,
     val omakaseExcludeWatched: Boolean,
+    // ★ パッチ (Komorebi-fork): MPEG-2 ソフトウェアデコード
+    val mpeg2SoftwareDecode: Boolean,
     val geminiApiKey: String,
     val geminiApiKeyStatus: String,
     val enableAiNormalization: String,
@@ -154,6 +156,7 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         orphanSweepLastAborted = repository.orphanSweepLastAborted.collectAsState(initial = false).value,
         omakaseGenre = repository.omakaseGenre.collectAsState(initial = "バラエティ").value,
         omakaseExcludeWatched = repository.omakaseExcludeWatched.collectAsState(initial = true).value,
+        mpeg2SoftwareDecode = repository.mpeg2SoftwareDecode.collectAsState(initial = true).value,
         geminiApiKey = repository.geminiApiKey.collectAsState(initial = "").value,
         geminiApiKeyStatus = repository.geminiApiKeyStatus.collectAsState(initial = "").value,
         enableAiNormalization = repository.enableAiNormalization.collectAsState(initial = "OFF").value,
