@@ -68,6 +68,8 @@ class RecordListFocusRequesters {
 
     val sortButton = FocusRequester() // ★ 追加: ソートボタン用のフォーカス
 
+    val omakaseButton = FocusRequester() // ★ パッチ (Komorebi-fork): おまかせ再生ボタン用
+
     val navPane = FocusRequester()
     val genrePane = FocusRequester()
     val channelPane = FocusRequester()

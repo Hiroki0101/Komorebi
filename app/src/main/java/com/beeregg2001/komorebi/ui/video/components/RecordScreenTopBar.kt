@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -56,6 +57,9 @@ fun RecordScreenTopBar(
     searchOpenButtonFocusRequester: FocusRequester,
     viewToggleButtonFocusRequester: FocusRequester,
     sortButtonFocusRequester: FocusRequester, // ★ 追加
+    // ★ パッチ (Komorebi-fork): おまかせ再生ボタン
+    omakaseButtonFocusRequester: FocusRequester,
+    onOmakaseClick: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onExecuteSearch: (String) -> Unit,
     onBackPress: () -> Unit,
@@ -245,6 +249,44 @@ fun RecordScreenTopBar(
                         )
                     }
                 }
+
+                // ★ パッチ (Komorebi-fork): おまかせ再生ボタン (録画からランダムに1本再生)
+                Surface(
+                    onClick = onOmakaseClick,
+                    modifier = Modifier
+                        .focusRequester(omakaseButtonFocusRequester)
+                        .focusProperties {
+                            up = FocusRequester.Cancel
+                            down = firstItemFocusRequester
+                        },
+                    shape = ClickableSurfaceDefaults.shape(CircleShape),
+                    colors = ClickableSurfaceDefaults.colors(
+                        containerColor = colors.surface.copy(alpha = 0.5f),
+                        focusedContainerColor = colors.textPrimary,
+                        contentColor = colors.textPrimary,
+                        focusedContentColor = if (colors.isDark) Color.Black else Color.White
+                    ),
+                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1.05f)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Shuffle,
+                            contentDescription = "おまかせ再生",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "おまかせ",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Spacer(Modifier.width(16.dp))
 
                 val showSortButton = selectedCategory == RecordCategory.ALL ||
                         selectedCategory == RecordCategory.UNWATCHED ||
