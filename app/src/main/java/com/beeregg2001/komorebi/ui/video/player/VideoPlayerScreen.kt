@@ -130,6 +130,8 @@ fun VideoPlayerScreen(
     onSceneSearchToggle: (Boolean) -> Unit,
     onBackPressed: () -> Unit,
     onShowToast: (String) -> Unit,
+    // ★ パッチ (Komorebi-fork): 再生終了通知 (おまかせ再生の自動復帰用)
+    onPlaybackEnded: () -> Unit = {},
     isPiPMode: Boolean = false,
     onPiPRequested: () -> Unit = {},
     videoPlayerViewModel: VideoPlayerViewModel = hiltViewModel(),
@@ -352,7 +354,8 @@ fun VideoPlayerScreen(
         onFatalError = { message ->
             onShowToast(message)
             onBackPressed()
-        }
+        },
+        onPlaybackEnded = onPlaybackEnded
     )
 
     // ★ 修正: 以前は remember(vs, exoPlayer) でメモ化していたが、isEdcbDirect/isOffsetBasedStream
