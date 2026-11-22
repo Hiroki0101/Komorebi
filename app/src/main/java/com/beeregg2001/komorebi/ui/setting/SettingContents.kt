@@ -92,6 +92,10 @@ fun GeneralSettingsContent(
     mpeg2AllCandidates: String,
     mpeg2SoftwareCandidates: String,
     mpeg2UsedDecoder: String,
+    // ★ パッチ (Komorebi-fork): v9 実験 (original 画質を VLC で再生)
+    vlcOriginalExperiment: Boolean,
+    onToggleVlcOriginalExperiment: (Boolean) -> Unit,
+    vlcOriginalR: FocusRequester,
     sidebarR: FocusRequester,
     onClick: (FocusRequester) -> Unit
 ) {
@@ -275,7 +279,7 @@ fun GeneralSettingsContent(
                     .focusProperties {
                         left = sidebarR
                         up = omakaseExcludeR
-                        down = FocusRequester.Cancel
+                        down = vlcOriginalR
                     },
                 onClick = { onClick(mpeg2SwDecodeR); onToggleMpeg2SoftwareDecode(!mpeg2SoftwareDecode) }
             )
@@ -297,6 +301,20 @@ fun GeneralSettingsContent(
                 value = mpeg2UsedDecoder.ifEmpty { "未再生" },
                 enabled = false,
                 onClick = {}
+            )
+            // ★ パッチ (Komorebi-fork): v9 実験 (ON の間は録画再生が常に original を VLC で再生する)
+            SettingItem(
+                title = "original画質をVLCで再生 (実験)",
+                value = if (vlcOriginalExperiment) "ON" else "OFF",
+                icon = Icons.Default.Science,
+                modifier = Modifier
+                    .focusRequester(vlcOriginalR)
+                    .focusProperties {
+                        left = sidebarR
+                        up = mpeg2SwDecodeR
+                        down = FocusRequester.Cancel
+                    },
+                onClick = { onClick(vlcOriginalR); onToggleVlcOriginalExperiment(!vlcOriginalExperiment) }
             )
         }
     }
