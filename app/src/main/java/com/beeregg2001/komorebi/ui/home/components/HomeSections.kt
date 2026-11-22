@@ -85,6 +85,9 @@ fun NavigationLinkButton(label: String, icon: ImageVector, onClick: () -> Unit) 
 @Composable
 fun LastWatchedSection(
     channels: List<Channel>,
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (uniqueId 集合) と長押しトグル
+    favoriteChannelKeys: Set<String> = emptySet(),
+    onChannelLongClick: (Channel) -> Unit = {},
     groupedChannels: Map<String, List<Channel>>,
     getLogoUrl: suspend (String) -> String,
     shouldCropLogo: Boolean,
@@ -107,11 +110,20 @@ fun LastWatchedSection(
     }
 
     Column(modifier = Modifier.animateContentSize()) {
-        SectionHeader(
-            "前回視聴したチャンネル",
-            Icons.Default.History,
-            Modifier.padding(horizontal = 48.dp)
-        )
+        // ★ パッチ (Komorebi-fork): お気に入りがある場合は見出しを切り替える
+        if (favoriteChannelKeys.isNotEmpty()) {
+            SectionHeader(
+                "お気に入り・最近のチャンネル",
+                Icons.Default.Star,
+                Modifier.padding(horizontal = 48.dp)
+            )
+        } else {
+            SectionHeader(
+                "前回視聴したチャンネル",
+                Icons.Default.History,
+                Modifier.padding(horizontal = 48.dp)
+            )
+        }
         // ★ 変更: TvLazyRow -> LazyRow
         LazyRow(
             state = rowState,
@@ -137,22 +149,27 @@ fun LastWatchedSection(
                     }
                 }
 
+                // ★ パッチ (Komorebi-fork): お気に入り判定 (バッジ・ヒーロー表示・長押しに使用)
+                val isFavorite = channel.uniqueId in favoriteChannelKeys
                 LastWatchedChannelCard(
                     channel = channel,
                     liveChannel = liveChannel,
                     getLogoUrl = getLogoUrl,
                     shouldCropLogo = shouldCropLogo,
+                    isFavorite = isFavorite,
                     onClick = { onChannelClick(channel) },
+                    onLongClick = { onChannelLongClick(channel) },
                     onFocus = {
                         onUpdateHeroInfo(
                             HomeHeroInfo(
                                 title = liveChannel?.programPresent?.title ?: channel.name,
                                 subtitle = channel.name,
                                 description = liveChannel?.programPresent?.description
-                                    ?: "前回視聴していたチャンネルです。",
+                                    ?: if (isFavorite) "お気に入りに登録したチャンネルです。長押しで解除します。"
+                                    else "前回視聴していたチャンネルです。長押しでお気に入りに登録します。",
                                 channelId = channel.id,
                                 isThumbnail = false,
-                                tag = "前回視聴"
+                                tag = if (isFavorite) "お気に入り" else "前回視聴"
                             )
                         )
                     },

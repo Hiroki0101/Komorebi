@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,7 +48,10 @@ fun LastWatchedChannelCard(
     shouldCropLogo: Boolean,
     onClick: () -> Unit,
     onFocus: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // ★ パッチ (Komorebi-fork): お気に入りバッジと長押しトグル
+    isFavorite: Boolean = false,
+    onLongClick: (() -> Unit)? = null
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val colors = KomorebiTheme.colors
@@ -64,6 +68,7 @@ fun LastWatchedChannelCard(
 
     Surface(
         onClick = onClick,
+        onLongClick = onLongClick,
         modifier = modifier
             .width(220.dp)
             .height(96.dp)
@@ -139,6 +144,17 @@ fun LastWatchedChannelCard(
                         color = colors.textPrimary.copy(alpha = 0.6f)
                     )
                 }
+            }
+            // ★ パッチ (Komorebi-fork): お気に入りバッジ
+            if (isFavorite) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = "お気に入り",
+                    tint = colors.accent,
+                    modifier = Modifier
+                        .align(Alignment.Top)
+                        .size(16.dp)
+                )
             }
         }
     }
