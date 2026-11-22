@@ -169,6 +169,8 @@ fun MpvOriginalPlayerScreen(
                 MPVLib.setOptionString("hwdec", "no")
                 MPVLib.setOptionString("vo", "gpu")
                 MPVLib.setOptionString("gpu-context", "android")
+                // ★ v10.1: 映像をディスプレイの垂直同期にリサンプルして提示し、周期 judder を消す
+                MPVLib.setOptionString("video-sync", "display-resample")
                 // インターレース放送を mpv 側でデインターレースして出力する
                 MPVLib.setOptionString("deinterlace", "yes")
                 MPVLib.setOptionString("cache", "yes")
@@ -204,6 +206,29 @@ fun MpvOriginalPlayerScreen(
                 try {
                     MPVLib.destroy()
                 } catch (e: Exception) {
+                }
+            }
+        }
+
+        // ★ v10.1: 15秒ごとに再生統計を実験ログへ残す (カクツキの切り分け用)
+        LaunchedEffect(streamUrl) {
+            while (true) {
+                delay(15000)
+                if (!session.ready) continue
+                try {
+                    val drop = MPVLib.getPropertyInt("frame-drop-count")
+                    val mistimed = MPVLib.getPropertyInt("mistimed-frame-count")
+                    val delayed = MPVLib.getPropertyInt("vo-delayed-frame-count")
+                    val avsync = MPVLib.getPropertyDouble("avsync")
+                    val dispFps = MPVLib.getPropertyDouble("estimated-display-fps")
+                    val contFps = MPVLib.getPropertyDouble("container-fps")
+                    MpvExperimentLog.record(
+                        context,
+                        "統計 drop=$drop mistimed=$mistimed delayed=$delayed avsync=$avsync displayFps=$dispFps containerFps=$contFps"
+                    )
+                } catch (e: Throwable) {
+                    MpvExperimentLog.record(context, "統計取得例外: ${e.javaClass.simpleName}: ${e.message}")
+                    break
                 }
             }
         }

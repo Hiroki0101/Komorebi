@@ -238,7 +238,11 @@
 
 ## v10: 実験プレイヤーのエンジンを mpv に差し替え
 
-- 状態: 実装済み・実機未確認（2026-11-22）
+- 状態: 実機確認済み（2026-11-22、BS 録画が乱れ・固まりなく再生できた。
+  カクツキは VLC より改善したが完全な滑らかさではない）
+- v10.1: 残るカクツキ対策として video-sync=display-resample を追加し、
+  15秒間隔で再生統計（frame-drop / mistimed / vo-delayed / avsync /
+  display・container fps）を実験ログへ記録するようにした（実機未確認）
 - 経緯の訂正: 当初「上流 Media3 の decoder_ffmpeg を自前ビルドすれば
   本物の FFmpeg 映像デコーダが手に入る」と見込んだが、Media3 1.7.1 の
   実ソースを確認したところ、上流の ExperimentalFfmpegVideoRenderer 自体が
