@@ -16,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -111,6 +113,9 @@ fun LastWatchedSection(
     // ★ 変更: rememberTvLazyListState -> rememberLazyListState
     val rowState = rememberLazyListState()
 
+    // ★ パッチ (Komorebi-fork): EPG由来の「次の番組」索引 (APIに following が無い環境用)
+    val nextProgramByKey by homeViewModel.nextProgramByChannelKey.collectAsState()
+
     LaunchedEffect(ticketManager.currentTicket, ticketManager.issueTime) {
         if (ticketManager.currentTicket == HomeFocusTicket.HOME_RESTORE && ticketManager.targetSection == sectionId) {
             val index = channels.indexOfFirst { it.id == ticketManager.targetItemId }
@@ -177,11 +182,23 @@ fun LastWatchedSection(
                                     else "前回視聴していたチャンネルです。",
                                 // ★ パッチ (Komorebi-fork): お気に入り局は次の番組を独立した行で出す
                                 // (説明文の末尾に足す方式は最大3行の切り捨てで見えなかった)
+                                // データはチャンネルAPIの following を優先し、無い環境では
+                                // ホームが保持している共有EPGから補う (v4.2)
                                 nextProgramText = if (isFavorite) {
-                                    liveChannel?.programFollowing?.let { following ->
-                                        val start = formatProgramStartTime(following.startTime)
-                                        "次: " + (if (start.isNotEmpty()) start + "〜 " else "") +
-                                            "『" + following.title + "』"
+                                    val apiFollowing = liveChannel?.programFollowing
+                                    val epgFollowing = nextProgramByKey[channel.uniqueId]
+                                    when {
+                                        apiFollowing != null -> {
+                                            val start = formatProgramStartTime(apiFollowing.startTime)
+                                            "次: " + (if (start.isNotEmpty()) start + "〜 " else "") +
+                                                "『" + apiFollowing.title + "』"
+                                        }
+                                        epgFollowing != null -> {
+                                            val start = formatProgramStartTime(epgFollowing.start_time)
+                                            "次: " + (if (start.isNotEmpty()) start + "〜 " else "") +
+                                                "『" + epgFollowing.title + "』"
+                                        }
+                                        else -> null
                                     }
                                 } else null,
                                 channelId = channel.id,
