@@ -48,6 +48,7 @@ import androidx.media3.extractor.ts.TsExtractor
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.exoplayer.upstream.DefaultAllocator
 import com.beeregg2001.komorebi.NativeLib
+import com.beeregg2001.komorebi.common.Mpeg2DecodeDiagnostics
 import com.beeregg2001.komorebi.common.Mpeg2SoftwareCodecSelector
 import com.beeregg2001.komorebi.ui.live.DirectSubtitlePayloadReaderFactory
 import com.beeregg2001.komorebi.ui.subtitle.NativeCaptionCue
@@ -386,6 +387,7 @@ fun rememberManagedExoPlayer(
                         initializationDurationMs: Long
                     ) {
                         Log.i("KomorebiV8", "Recorded video decoder: $decoderName")
+                        Mpeg2DecodeDiagnostics.recordUsedDecoder("録画", decoderName)
                     }
                 })
                 addListener(object : Player.Listener {
