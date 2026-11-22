@@ -92,10 +92,10 @@ fun GeneralSettingsContent(
     mpeg2AllCandidates: String,
     mpeg2SoftwareCandidates: String,
     mpeg2UsedDecoder: String,
-    // ★ パッチ (Komorebi-fork): v9 実験 (original 画質を VLC で再生)
-    vlcOriginalExperiment: Boolean,
-    onToggleVlcOriginalExperiment: (Boolean) -> Unit,
-    vlcOriginalR: FocusRequester,
+    // ★ パッチ (Komorebi-fork): v11 (MPEG-2 録画を変換画質で再生)
+    mpeg2TranscodedPlayback: Boolean,
+    onToggleMpeg2TranscodedPlayback: (Boolean) -> Unit,
+    mpeg2TranscodedR: FocusRequester,
     sidebarR: FocusRequester,
     onClick: (FocusRequester) -> Unit
 ) {
@@ -279,7 +279,7 @@ fun GeneralSettingsContent(
                     .focusProperties {
                         left = sidebarR
                         up = omakaseExcludeR
-                        down = vlcOriginalR
+                        down = mpeg2TranscodedR
                     },
                 onClick = { onClick(mpeg2SwDecodeR); onToggleMpeg2SoftwareDecode(!mpeg2SoftwareDecode) }
             )
@@ -302,30 +302,19 @@ fun GeneralSettingsContent(
                 enabled = false,
                 onClick = {}
             )
-            // ★ パッチ (Komorebi-fork): v10 mpv 実験ログ (表示のみ・クラッシュ後も残る到達点)
-            val mpvDiagContext = androidx.compose.ui.platform.LocalContext.current
-            val mpvLastStep = androidx.compose.runtime.remember {
-                com.beeregg2001.komorebi.common.MpvExperimentLog.readLast(mpvDiagContext)
-            }
+            // ★ パッチ (Komorebi-fork): v11 (ON の間、MPEG-2 録画は original 指定でも変換画質で再生する。Streamer 用)
             SettingItem(
-                title = "mpv実験ログ (最終到達点)",
-                value = mpvLastStep.ifEmpty { "未実行" },
-                enabled = false,
-                onClick = {}
-            )
-            // ★ パッチ (Komorebi-fork): v9/v10 実験 (ON の間は録画再生が常に original を実験プレイヤーで再生する)
-            SettingItem(
-                title = "original画質をmpvで再生 (実験)",
-                value = if (vlcOriginalExperiment) "ON" else "OFF",
+                title = "MPEG-2は変換画質で再生 (Streamer用)",
+                value = if (mpeg2TranscodedPlayback) "ON" else "OFF",
                 icon = Icons.Default.Science,
                 modifier = Modifier
-                    .focusRequester(vlcOriginalR)
+                    .focusRequester(mpeg2TranscodedR)
                     .focusProperties {
                         left = sidebarR
                         up = mpeg2SwDecodeR
                         down = FocusRequester.Cancel
                     },
-                onClick = { onClick(vlcOriginalR); onToggleVlcOriginalExperiment(!vlcOriginalExperiment) }
+                onClick = { onClick(mpeg2TranscodedR); onToggleMpeg2TranscodedPlayback(!mpeg2TranscodedPlayback) }
             )
         }
     }
