@@ -136,6 +136,8 @@ fun SettingsScreen(
                 FocusRequester(),
                 FocusRequester(),
                 // ★ パッチ (Komorebi-fork): MPEG-2 ソフトウェアデコード用に1個増強
+                FocusRequester(),
+                // ★ パッチ (Komorebi-fork): v9 実験トグル用に1個増強
                 FocusRequester()
             ),
             listOf(
@@ -459,6 +461,16 @@ fun SettingsScreen(
                             prefs.mpeg2AllCandidates,
                             prefs.mpeg2SoftwareCandidates,
                             prefs.mpeg2UsedDecoder,
+                            prefs.vlcOriginalExperiment,
+                            {
+                                scope.launch {
+                                    repository.saveBoolean(
+                                        SettingsRepository.VLC_ORIGINAL_EXPERIMENT,
+                                        it
+                                    )
+                                }
+                            },
+                            itemFocusRequesters[0][11],
                             categoryFocusRequesters[0]
                         ) { uiState.restoreFocusRequester = it; uiState.restoreCategoryIndex = 0 }
 
