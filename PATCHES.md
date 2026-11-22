@@ -236,6 +236,31 @@
   ui/video/player/VlcOriginalPlayerScreen.kt（新規）、
   ui/main/MainRootScreen.kt（selectedProgram 分岐の振り分け）
 
+## v10: 実験プレイヤーのエンジンを mpv に差し替え
+
+- 状態: 実装済み・実機未確認（2026-11-22）
+- 経緯の訂正: 当初「上流 Media3 の decoder_ffmpeg を自前ビルドすれば
+  本物の FFmpeg 映像デコーダが手に入る」と見込んだが、Media3 1.7.1 の
+  実ソースを確認したところ、上流の ExperimentalFfmpegVideoRenderer 自体が
+  未実装のスタブだった（javadoc に "not yet functional"、
+  supportsFormat は常時非対応、createDecoder は null を返し、
+  ffmpeg_jni.cc に映像用 JNI は存在しない）。Google は Media3 で FFmpeg
+  映像デコードを実装したことがなく、この路線は存在しないと確定
+- 代替として、Channels が同症状を直したのと同じ mpv コアを採用。
+  ライブラリは Maven Central の `io.github.midasvo:libmpv:1.3.0`
+  （Findroid が使う libmpv-android 系。mpv 0.42 + FFmpeg 9.1、
+  armeabi-v7a 含む全 ABI の AAR、実物で mpeg2video の含有と
+  MPVLib API を確認済み）。実効ライセンスは GPL-3.0（個人フォークのため実害なし）
+- 仕様: v9 の実験トグルの行き先を VLC 画面から新規
+  `MpvOriginalPlayerScreen` に差し替え（VLC 画面のコードは温存）。
+  mpv のオプションは hwdec=no（ソフトウェアデコード固定）、vo=gpu、
+  gpu-context=android、deinterlace=yes、cache=yes。
+  操作・割り切りは v9 と同一
+- 変更ファイル: app/build.gradle.kts（libmpv 依存追加）、
+  ui/video/player/MpvOriginalPlayerScreen.kt（新規）、
+  ui/main/MainRootScreen.kt（振り分け先の差し替え）、
+  ui/setting/SettingContents.kt（トグル表記を mpv に変更）
+
 ## 本家の新版が出たら
 
 パッチは自動では新版に乗らない。このファイルのパッチ一覧を地図にして、

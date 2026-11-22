@@ -172,6 +172,8 @@ dependencies {
     implementation("androidx.media3:media3-common:$media3_version")
     implementation("androidx.media3:media3-exoplayer-hls:$media3_version")
     implementation("org.jellyfin.media3:media3-ffmpeg-decoder:1.6.1+1")
+    // ★ パッチ (Komorebi-fork): v10 実験 (mpv コアで original 画質をソフトウェアデコード再生)
+    implementation("io.github.midasvo:libmpv:1.3.0")
 
     // --- その他 ---
     implementation("io.coil-kt:coil-compose:2.5.0")
