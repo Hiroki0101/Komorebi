@@ -347,8 +347,13 @@ fun rememberManagedExoPlayer(
         val allocator = DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE)
         val loadControl = DefaultLoadControl.Builder()
             .setAllocator(allocator)
-            .setTargetBufferBytes(150 * 1024 * 1024)
-            .setBufferDurationsMs(30000, 120000, 2500, 5000)
+            // ★ パッチ (Komorebi-fork): 先読み上限を 150MB → 48MB に制限する。
+            // 本家値では再生開始/シークのたびに最大150MBをディスク上限速度で
+            // 一気に読むため、録画用HDD (SMR) の書き込みと衝突して読みが
+            // 数秒待たされることがある。48MBでも地デジ約23秒/BS約16秒分の
+            // クッションがあり、渋滞吸収には十分という判断。
+            .setTargetBufferBytes(48 * 1024 * 1024)
+            .setBufferDurationsMs(30000, 60000, 2500, 5000)
             .setPrioritizeTimeOverSizeThresholds(false)
             .build()
 
