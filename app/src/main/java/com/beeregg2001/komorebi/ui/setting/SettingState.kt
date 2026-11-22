@@ -43,6 +43,11 @@ class SettingPreferences(
     val favoriteBaseballTeams: Set<String>,
     // ★ パッチ (Komorebi-fork): お気に入りチャンネル (Channel.uniqueId の集合。順序は保存値側で管理)
     val favoriteChannels: Set<String>,
+    // ★ パッチ (Komorebi-fork): 孤児スイープの有効/無効と最終実行結果
+    val orphanSweepEnabled: Boolean,
+    val orphanSweepLastRunAt: Long,
+    val orphanSweepLastDeleted: Int,
+    val orphanSweepLastAborted: Boolean,
     val geminiApiKey: String,
     val geminiApiKeyStatus: String,
     val enableAiNormalization: String,
@@ -140,6 +145,10 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         postRecordingBatchList = batchList,
         favoriteBaseballTeams = favoriteTeams,
         favoriteChannels = favoriteChannelsSet,
+        orphanSweepEnabled = repository.orphanSweepEnabled.collectAsState(initial = true).value,
+        orphanSweepLastRunAt = repository.orphanSweepLastRunAt.collectAsState(initial = "").value.toLongOrNull() ?: 0L,
+        orphanSweepLastDeleted = repository.orphanSweepLastDeleted.collectAsState(initial = "").value.toIntOrNull() ?: 0,
+        orphanSweepLastAborted = repository.orphanSweepLastAborted.collectAsState(initial = false).value,
         geminiApiKey = repository.geminiApiKey.collectAsState(initial = "").value,
         geminiApiKeyStatus = repository.geminiApiKeyStatus.collectAsState(initial = "").value,
         enableAiNormalization = repository.enableAiNormalization.collectAsState(initial = "OFF").value,
