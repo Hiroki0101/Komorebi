@@ -39,6 +39,16 @@ import com.beeregg2001.komorebi.ui.theme.getSeasonalIcon
 import com.beeregg2001.komorebi.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 
+/** ★ パッチ (Komorebi-fork): 番組の開始時刻 (ISO文字列) を "HH:mm" に整形する。失敗時は空文字。 */
+private fun formatProgramStartTime(isoTime: String): String {
+    return try {
+        java.time.OffsetDateTime.parse(isoTime)
+            .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+    } catch (e: Exception) {
+        ""
+    }
+}
+
 @Composable
 fun SectionHeader(title: String, icon: ImageVector, modifier: Modifier = Modifier) {
     val colors = KomorebiTheme.colors
@@ -162,9 +172,22 @@ fun LastWatchedSection(
                             HomeHeroInfo(
                                 title = liveChannel?.programPresent?.title ?: channel.name,
                                 subtitle = channel.name,
-                                description = liveChannel?.programPresent?.description
-                                    ?: if (isFavorite) "お気に入りに登録したチャンネルです。"
-                                    else "前回視聴していたチャンネルです。",
+                                description = buildString {
+                                    append(
+                                        liveChannel?.programPresent?.description
+                                            ?: if (isFavorite) "お気に入りに登録したチャンネルです。"
+                                            else "前回視聴していたチャンネルです。"
+                                    )
+                                    // ★ パッチ (Komorebi-fork): お気に入り局は次の番組も添える
+                                    if (isFavorite) {
+                                        liveChannel?.programFollowing?.let { following ->
+                                            val start = formatProgramStartTime(following.startTime)
+                                            append("\n次: ")
+                                            if (start.isNotEmpty()) append(start + "〜 ")
+                                            append("『" + following.title + "』")
+                                        }
+                                    }
+                                },
                                 channelId = channel.id,
                                 isThumbnail = false,
                                 tag = if (isFavorite) "お気に入り" else "前回視聴"
