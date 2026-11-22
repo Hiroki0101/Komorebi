@@ -376,6 +376,18 @@ fun rememberManagedExoPlayer(
                         .setUsage(C.USAGE_MEDIA).build(),
                     true
                 )
+                // ★ パッチ (Komorebi-fork): v8.1 実際に使われた映像デコーダをログへ出す (切り分け用)
+                addAnalyticsListener(object :
+                    androidx.media3.exoplayer.analytics.AnalyticsListener {
+                    override fun onVideoDecoderInitialized(
+                        eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime,
+                        decoderName: String,
+                        initializedTimestampMs: Long,
+                        initializationDurationMs: Long
+                    ) {
+                        Log.i("KomorebiV8", "Recorded video decoder: $decoderName")
+                    }
+                })
                 addListener(object : Player.Listener {
                     override fun onMetadata(metadata: Metadata) {
                         for (i in 0 until metadata.length()) {

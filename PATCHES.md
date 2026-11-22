@@ -153,7 +153,13 @@
   `viewmodel/LivePlayerViewModel.kt`、`ui/live/LivePlayerFactory.kt`、
   `ui/video/player/VideoPlayerManager.kt`、`ui/setting/SettingState.kt`、
   `ui/setting/SettingContents.kt`、`ui/setting/SettingScreen.kt`
-- 状態： 実機確認待ち（BS の動きの激しい番組で乱れが消えるか）
+- 状態： v8 初版は実機で「変わらず乱れる」（2026-11-22）。端末にソフト
+  MPEG-2 デコーダが無く、安全策フォールバックで元の HW デコーダに戻って
+  いた可能性が高い。v8.1 でフォールバックを外し（ソフト候補が無ければ
+  空を返して同梱 FFmpeg 拡張へ落とす）、デコーダ候補と実際に使われた
+  デコーダ名をログ（タグ `Mpeg2SwSelector` / `KomorebiV8`）へ出す診断を
+  入れた。FFmpeg 側のライブラリに mpeg2video デコーダが含まれることは
+  AAR の実物で確認済み。再確認待ち
 
 ## ビルド・更新手順
 

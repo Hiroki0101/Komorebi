@@ -3,6 +3,7 @@
 package com.beeregg2001.komorebi.ui.live
 
 import android.content.Context
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -18,6 +19,7 @@ import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.extractor.metadata.id3.PrivFrame
@@ -141,6 +143,18 @@ class LivePlayerFactory @Inject constructor(
                                 onSubtitleDataReceived(pts, entry.privateData)
                             }
                         }
+                    }
+                })
+
+                // ★ パッチ (Komorebi-fork): v8.1 実際に使われた映像デコーダをログへ出す (切り分け用)
+                addAnalyticsListener(object : AnalyticsListener {
+                    override fun onVideoDecoderInitialized(
+                        eventTime: AnalyticsListener.EventTime,
+                        decoderName: String,
+                        initializedTimestampMs: Long,
+                        initializationDurationMs: Long
+                    ) {
+                        Log.i("KomorebiV8", "Live video decoder: $decoderName")
                     }
                 })
             }
