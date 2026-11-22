@@ -93,8 +93,8 @@ class SettingsRepository @Inject constructor(
 
         // ★ パッチ (Komorebi-fork): MPEG-2 のソフトウェアデコード (BS の映像の乱れ対策)
         val MPEG2_SOFTWARE_DECODE = booleanPreferencesKey("mpeg2_software_decode")
-        // ★ パッチ (Komorebi-fork): v9 実験: original 画質を VLC (ソフトウェアデコード) で再生
-        val VLC_ORIGINAL_EXPERIMENT = booleanPreferencesKey("vlc_original_experiment")
+        // ★ パッチ (Komorebi-fork): v11: MPEG-2 録画は original 指定でも変換画質で再生 (Streamer 用)
+        val MPEG2_TRANSCODED_PLAYBACK = booleanPreferencesKey("mpeg2_transcoded_playback")
         val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         val GEMINI_API_KEY_STATUS = stringPreferencesKey("gemini_api_key_status")
         val ENABLE_AI_NORMALIZATION = stringPreferencesKey("enable_ai_normalization")
@@ -226,9 +226,9 @@ class SettingsRepository @Inject constructor(
     // ★ パッチ (Komorebi-fork): MPEG-2 ソフトウェアデコード (既定 ON)
     val mpeg2SoftwareDecode: Flow<Boolean> =
         context.dataStore.data.map { it[MPEG2_SOFTWARE_DECODE] ?: true }
-    // ★ パッチ (Komorebi-fork): v9 実験トグル (既定 OFF)
-    val vlcOriginalExperiment: Flow<Boolean> =
-        context.dataStore.data.map { it[VLC_ORIGINAL_EXPERIMENT] ?: false }
+    // ★ パッチ (Komorebi-fork): v11 トグル (既定 OFF)
+    val mpeg2TranscodedPlayback: Flow<Boolean> =
+        context.dataStore.data.map { it[MPEG2_TRANSCODED_PLAYBACK] ?: false }
     val geminiApiKey: Flow<String> = context.dataStore.data.map { it[GEMINI_API_KEY] ?: "" }
 
     // ★ 追加: GeminiのAPIキーが実際に有効か検証した結果("VALID"/"INVALID"/"UNVERIFIED"/未検証時は空文字)
