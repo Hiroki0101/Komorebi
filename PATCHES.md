@@ -70,6 +70,19 @@
 - 変更ファイル（1件）： `ui/home/components/HomeSections.kt`
 - 状態： 実機確認待ち
 
+## v5： 録画再生の先読みバッファ制限（150MB → 48MB）
+
+- 背景： Komorebi の録画再生は先読み上限が 150MB あり、再生開始やシークのたびに
+  最大 150MB をディスク上限速度（実測約 110MB/s）で一気に読む。このバーストが
+  録画用 HDD（SMR）の書き込みと衝突すると読みが数秒待たされ、再生の停止や
+  シーク後の待ちとして見えることがある（KonomiTV の Web 再生やライブでは発生しない）
+- 変更： `VideoPlayerManager` の `setTargetBufferBytes` を 48MB に、
+  `setBufferDurationsMs` の最大を 120 秒 → 60 秒に。48MB でも地デジ約23秒／
+  BS約16秒分のクッションがあり、数秒級の渋滞吸収には十分という判断
+- 影響範囲は録画再生のみ（ライブと SMB 再生は別プレイヤーで無関係）
+- 変更ファイル（1件）： `ui/video/player/VideoPlayerManager.kt`
+- 状態： 実機確認待ち
+
 ## ビルド・更新手順
 
 1. Android Studio でこのフォークを開き、Update Project（Ctrl+T、Merge を選択）で
