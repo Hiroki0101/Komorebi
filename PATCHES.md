@@ -67,8 +67,13 @@
 - お気に入り以外のカードは従来どおり。次の番組データが無い局では何も追加しない
 - データは既存の `Channel.programFollowing`（全バックエンドで取得済み）を使う。
   時刻は `HH:mm` 固定表記
-- 変更ファイル（1件）： `ui/home/components/HomeSections.kt`
-- 状態： 実機確認待ち
+- v4.1 修正： 当初は説明文の末尾に足す方式だったが、ヒーローの説明文は最大3行で
+  切り捨てられるため実機で見えなかった（2026-11-22 にユーザー報告）。
+  `HomeHeroInfo.nextProgramText` という独立フィールドに変え、ヒーロー内に
+  専用の1行（アクセント色・太字）で必ず表示する方式に変更
+- 変更ファイル（2件）： `ui/home/components/HomeSections.kt`、
+  `ui/home/components/HomeHeroDashboard.kt`
+- 状態： 実機確認待ち（v4.1）
 
 ## v5： 録画再生の先読みバッファ制限（150MB → 48MB）
 
