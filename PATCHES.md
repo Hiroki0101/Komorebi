@@ -202,6 +202,30 @@
   署名の元になる `C:\Users\hkoik\.android\debug.keystore` を失うと署名が変わり、
   再インストール＋接続設定の再入力になる。**このファイルはバックアップしておくこと**
 
+## v9: original 画質を VLC で再生（実験）
+
+- 状態: 実装済み・実機未確認（2026-11-22）
+- 背景: v8 の結論（Streamer にはアプリから使える MPEG-2 ソフトデコーダが
+  MediaCodec にも FFmpeg 拡張にも無い）を受け、Channels アプリで同症状
+  （Google TV Streamer + MPEG-2 で映像だけ固まる）がプレイヤー側の
+  ソフトデコード切替で直った前例に基づく実験。Komorebi 同梱の libVLC は
+  FFmpeg 系デコーダを内蔵し MediaCodec を経由しない
+- 仕様: 設定→一般→映像デコード「original画質をVLCで再生 (実験)」
+  （キー `vlc_original_experiment`、既定 OFF）。ON の間は録画再生が常に
+  original（`/api/videos/{id}/download` の生 TS）を新規の最小プレイヤー
+  `VlcOriginalPlayerScreen` で再生する。核心は Media の
+  `setHWDecoderEnabled(false, false)`（ハードウェアデコード無効化）
+- 操作: 中央=再生/一時停止、左右=-10秒/+30秒、戻る=終了、再生終了で自動で閉じる
+- 割り切り（実験のため未対応）: 視聴位置の保存、チャプター、コメント、
+  画質切替、字幕/音声切替、ミニプレイヤー、おまかせ再生の終了後ホーム復帰
+- 変更ファイル: data/repository/SettingsRepository.kt（キー/Flow 追加）、
+  viewmodel/SettingsViewModel.kt（StateFlow 追加）、
+  ui/setting/SettingState.kt（prefs 項目追加）、
+  ui/setting/SettingScreen.kt（配線+フォーカスリクエスタ[0][11]追加）、
+  ui/setting/SettingContents.kt（トグル行追加、MPEG-2 トグルの down を付け替え）、
+  ui/video/player/VlcOriginalPlayerScreen.kt（新規）、
+  ui/main/MainRootScreen.kt（selectedProgram 分岐の振り分け）
+
 ## 本家の新版が出たら
 
 パッチは自動では新版に乗らない。このファイルのパッチ一覧を地図にして、
