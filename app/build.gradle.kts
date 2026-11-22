@@ -22,16 +22,6 @@ android {
         }
     }
 
-    // ★ パッチ (Komorebi-fork): v10 libmpv と libVLC が両方 libc++_shared.so を同梱するため重複を先勝ちで解決
-    packaging {
-        jniLibs {
-            pickFirsts += listOf(
-                "lib/armeabi-v7a/libc++_shared.so",
-                "lib/arm64-v8a/libc++_shared.so"
-            )
-        }
-    }
-
     defaultConfig {
         applicationId = "com.beeregg2001.Komorebi"
         minSdk = 24
@@ -182,10 +172,7 @@ dependencies {
     implementation("androidx.media3:media3-common:$media3_version")
     implementation("androidx.media3:media3-exoplayer-hls:$media3_version")
     implementation("org.jellyfin.media3:media3-ffmpeg-decoder:1.6.1+1")
-    // ★ パッチ (Komorebi-fork): v10 実験 (mpv コアで original 画質をソフトウェアデコード再生)
-    // midasvo 1.3.0 系は minCompileSdk=37 で compileSdk 35 の本プロジェクトでは使えないため、
-    // メタデータ要件の緩い jdtech 0.5.1 (静的 API 版) を使う
-    implementation("dev.jdtech.mpv:libmpv:0.5.1")
+
 
     // --- その他 ---
     implementation("io.coil-kt:coil-compose:2.5.0")

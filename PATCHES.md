@@ -202,9 +202,12 @@
   署名の元になる `C:\Users\hkoik\.android\debug.keystore` を失うと署名が変わり、
   再インストール＋接続設定の再入力になる。**このファイルはバックアップしておくこと**
 
-## v9: original 画質を VLC で再生（実験）
+## v9: original 画質を VLC で再生（実験）【撤去済み】
 
-- 状態: 実機確認済み（2026-11-22）。前に乱れた BS 録画が乱れ・固まりなく
+- 状態: 2026-11-23 にユーザーの判断で v10 とともに実験系を全撤去。
+  後継は v11（MPEG-2 は変換画質で再生する Streamer 用トグル）。
+  以下は記録として残す。
+- 実機確認済み（2026-11-22）。前に乱れた BS 録画が乱れ・固まりなく
   再生できた。仮説（FFmpeg ソフトデコードなら MT8696 で MPEG-2 1080i が
   通る）は実証。残課題はカクツキ（v9.1 で対策中）。発熱は長時間再生で
   なければ許容範囲との実機感想
@@ -236,13 +239,24 @@
   ui/video/player/VlcOriginalPlayerScreen.kt（新規）、
   ui/main/MainRootScreen.kt（selectedProgram 分岐の振り分け）
 
-## v10: 実験プレイヤーのエンジンを mpv に差し替え
+## v10: 実験プレイヤーのエンジンを mpv に差し替え【撤去済み】
 
-- 状態: 実機確認済み（2026-11-22、BS 録画が乱れ・固まりなく再生できた。
+- 状態: 2026-11-23 にユーザーの判断で実験系を全撤去（プレイヤー画面・
+  実験トグル・libmpv 依存・packaging の pickFirsts・マニフェストの
+  overrideLibrary・実験ログ表示をすべて戻した。jniLibs に置いた
+  libc++_shared.so 2ファイルはローカル配置のため手元で削除する）。
+  v10.1 の統計では displayFps が取れず display-resample が効いて
+  いない疑いが残ったが、追及は打ち切り。以下は記録として残す。
+- 実機確認済み（2026-11-22、BS 録画が乱れ・固まりなく再生できた。
   カクツキは VLC より改善したが完全な滑らかさではない）
 - v10.1: 残るカクツキ対策として video-sync=display-resample を追加し、
   15秒間隔で再生統計（frame-drop / mistimed / vo-delayed / avsync /
-  display・container fps）を実験ログへ記録するようにした（実機未確認）
+  display・container fps）を実験ログへ記録するようにした
+- v10.2: v10.1 の実機統計で estimated-display-fps が null（libmpv が画面
+  レートを自動検出できず display-resample が効いていない疑い）と判明した
+  ため、Android 側で検出した実リフレッシュレートを display-fps-override
+  で明示的に渡すようにした。あわせて統計の drop に15秒あたりの増加分を
+  併記（起動直後の一括ドロップと継続ドロップを1行で見分けるため）
 - 経緯の訂正: 当初「上流 Media3 の decoder_ffmpeg を自前ビルドすれば
   本物の FFmpeg 映像デコーダが手に入る」と見込んだが、Media3 1.7.1 の
   実ソースを確認したところ、上流の ExperimentalFfmpegVideoRenderer 自体が
@@ -275,6 +289,26 @@
   ui/video/player/MpvOriginalPlayerScreen.kt（新規）、
   ui/main/MainRootScreen.kt（振り分け先の差し替え）、
   ui/setting/SettingContents.kt（トグル表記を mpv に変更）
+
+## v11: MPEG-2 は変換画質で再生する（Streamer 用トグル）
+
+- 状態: 実装済み・実機未確認（2026-11-23）
+- 背景: Google TV Streamer の MPEG-2 ハードウェアデコードが壊れている
+  問題への恒常対策。端末側でどうにかする実験（v8〜v10）を打ち切り、
+  MPEG-2 録画だけサーバー（KonomiTV）側の変換配信に逃がす方針にした
+- 仕様: 設定→一般→映像デコードにトグル「MPEG-2は変換画質で再生
+  (Streamer用)」（キー `mpeg2_transcoded_playback`、既定 OFF）。
+  ON のとき、VideoPlayerViewModel.fetchAvailableQualities の KONOMITV
+  判定で、録画の videoCodec が MPEG-2 なら original を「番組固有の
+  除外」（perProgramExcludedQualities）に倒す。既存の仕組みにより、
+  既定画質が original のままでも再生時は 1080p-60fps（変換）へ
+  フォールバックし、設定値そのものは書き換わらない。録画中・非 TS
+  コンテナの除外判定、他バックエンド、H.264/H.265 録画には影響しない。
+  設定は端末ごとなので Streamer でだけ ON にする想定
+- 変更ファイル: data/repository/SettingsRepository.kt、
+  viewmodel/SettingsViewModel.kt、viewmodel/VideoPlayerViewModel.kt、
+  ui/setting/SettingState.kt、ui/setting/SettingScreen.kt、
+  ui/setting/SettingContents.kt
 
 ## 本家の新版が出たら
 

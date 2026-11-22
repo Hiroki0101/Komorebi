@@ -195,14 +195,22 @@ class VideoPlayerViewModel @Inject constructor(
                     //
                     // 一覧画面のRoom DBキャッシュはcontainerFormatを保持していないため、
                     // 必ずここでAPIから最新の詳細を取得して判定する。
-                    val isOriginalAvailable = recordProvider.getRecordedProgram(videoId)
+                    val fetchedVideo = recordProvider.getRecordedProgram(videoId)
                         .getOrNull()
                         ?.recordedVideo
+                    val isOriginalAvailable = fetchedVideo
                         ?.let { video ->
                             video.status != "Recording" &&
                                 video.containerFormat.equals("MPEG-TS", ignoreCase = true)
                         } ?: false
-                    _availableQualities.value = if (isOriginalAvailable) {
+                    // ★ パッチ (Komorebi-fork): v11 Streamer 用トグル。MPEG-2 録画では original を
+                    // 番組固有の除外として扱い、既定画質が original のままでも変換画質
+                    // (1080p-60fps) へフォールバックさせる。設定値そのものは書き換えない
+                    // (perProgramExcludedQualities の既存の仕組みに乗せる)。
+                    val useTranscodedForMpeg2 = isOriginalAvailable &&
+                        settingsRepository.mpeg2TranscodedPlayback.first() &&
+                        fetchedVideo?.videoCodec.equals("MPEG-2", ignoreCase = true)
+                    _availableQualities.value = if (isOriginalAvailable && !useTranscodedForMpeg2) {
                         StreamQuality.DEFAULT_QUALITIES
                     } else {
                         // originalはKonomiTVの値空間には常に存在し、この録画番組でだけ使えない。
