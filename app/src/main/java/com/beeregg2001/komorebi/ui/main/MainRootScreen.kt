@@ -375,6 +375,8 @@ fun MainRootScreen(
     val mirakurunPort by settingsViewModel.mirakurunPort.collectAsState(initial = "")
     val konomiIp by settingsViewModel.konomiIp.collectAsState(initial = "")
     val konomiPort by settingsViewModel.konomiPort.collectAsState(initial = "")
+    // ★ パッチ (Komorebi-fork): v9 実験 (original 画質を VLC で再生するか)
+    val vlcOriginalExperiment by settingsViewModel.vlcOriginalExperiment.collectAsState()
     val edcbIp by settingsViewModel.edcbIp.collectAsState(initial = "")
     val edcbPort by settingsViewModel.edcbPort.collectAsState(initial = "")
 
@@ -701,6 +703,22 @@ fun MainRootScreen(
                                     timeFormat = timeFormat
                                 )
                             } else if (state.selectedProgram != null) {
+                                // ★ パッチ (Komorebi-fork): v9 実験 ON の間は録画再生を VLC プレイヤーへ振り分ける
+                                if (vlcOriginalExperiment) {
+                                    com.beeregg2001.komorebi.ui.video.player.VlcOriginalPlayerScreen(
+                                        program = state.selectedProgram!!,
+                                        serverIp = konomiIp,
+                                        serverPort = konomiPort,
+                                        initialPositionMs = state.initialPlaybackPositionMs,
+                                        onBackPressed = {
+                                            state.selectedProgram = null
+                                            state.isReturningFromPlayer = true
+                                            state.isMiniPlayerMode = false
+                                            state.omakaseSession = false
+                                        },
+                                        onShowToast = { state.toastMessage = it }
+                                    )
+                                } else {
                                 VideoPlayerScreen(
                                     program = state.selectedProgram!!,
                                     initialPositionMs = state.initialPlaybackPositionMs,
@@ -737,6 +755,7 @@ fun MainRootScreen(
                                         state.toastMessage = "ミニプレイヤーに変更しました"
                                     }
                                 )
+                                }
                             } else if (state.selectedSmbItem != null) {
                                 val baseProgram =
                                     recordViewModel.recentRecordings.collectAsState().value.firstOrNull()
