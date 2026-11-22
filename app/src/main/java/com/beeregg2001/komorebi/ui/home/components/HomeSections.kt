@@ -85,9 +85,8 @@ fun NavigationLinkButton(label: String, icon: ImageVector, onClick: () -> Unit) 
 @Composable
 fun LastWatchedSection(
     channels: List<Channel>,
-    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (uniqueId 集合) と長押しトグル
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (uniqueId 集合)
     favoriteChannelKeys: Set<String> = emptySet(),
-    onChannelLongClick: (Channel) -> Unit = {},
     groupedChannels: Map<String, List<Channel>>,
     getLogoUrl: suspend (String) -> String,
     shouldCropLogo: Boolean,
@@ -149,7 +148,7 @@ fun LastWatchedSection(
                     }
                 }
 
-                // ★ パッチ (Komorebi-fork): お気に入り判定 (バッジ・ヒーロー表示・長押しに使用)
+                // ★ パッチ (Komorebi-fork): お気に入り判定 (バッジ・ヒーロー表示に使用)
                 val isFavorite = channel.uniqueId in favoriteChannelKeys
                 LastWatchedChannelCard(
                     channel = channel,
@@ -158,15 +157,14 @@ fun LastWatchedSection(
                     shouldCropLogo = shouldCropLogo,
                     isFavorite = isFavorite,
                     onClick = { onChannelClick(channel) },
-                    onLongClick = { onChannelLongClick(channel) },
                     onFocus = {
                         onUpdateHeroInfo(
                             HomeHeroInfo(
                                 title = liveChannel?.programPresent?.title ?: channel.name,
                                 subtitle = channel.name,
                                 description = liveChannel?.programPresent?.description
-                                    ?: if (isFavorite) "お気に入りに登録したチャンネルです。長押しで解除します。"
-                                    else "前回視聴していたチャンネルです。長押しでお気に入りに登録します。",
+                                    ?: if (isFavorite) "お気に入りに登録したチャンネルです。"
+                                    else "前回視聴していたチャンネルです。",
                                 channelId = channel.id,
                                 isThumbnail = false,
                                 tag = if (isFavorite) "お気に入り" else "前回視聴"

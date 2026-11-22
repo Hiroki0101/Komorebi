@@ -49,9 +49,8 @@ fun LastWatchedChannelCard(
     onClick: () -> Unit,
     onFocus: () -> Unit,
     modifier: Modifier = Modifier,
-    // ★ パッチ (Komorebi-fork): お気に入りバッジと長押しトグル
-    isFavorite: Boolean = false,
-    onLongClick: (() -> Unit)? = null
+    // ★ パッチ (Komorebi-fork): お気に入りバッジ
+    isFavorite: Boolean = false
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val colors = KomorebiTheme.colors
@@ -68,7 +67,6 @@ fun LastWatchedChannelCard(
 
     Surface(
         onClick = onClick,
-        onLongClick = onLongClick,
         modifier = modifier
             .width(220.dp)
             .height(96.dp)
