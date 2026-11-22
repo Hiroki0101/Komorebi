@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
@@ -82,6 +83,9 @@ fun LiveContent(
     isPiPMode: Boolean = false,
     aiFocusReturnTick: Int = 0,
     onAiReturnConsumed: () -> Unit = {},
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル (uniqueId 集合) と長押しトグル
+    favoriteChannelIds: Set<String> = emptySet(),
+    onChannelLongClick: (Channel) -> Unit = {},
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val liveRows by channelViewModel.liveRows.collectAsState()
@@ -273,6 +277,8 @@ fun LiveContent(
                                         uiState = uiState,
                                         channelViewModel = channelViewModel,
                                         onClick = { onChannelClick(uiState.channel) },
+                                        isFavorite = uiState.channel.uniqueId in favoriteChannelIds,
+                                        onLongClick = { onChannelLongClick(uiState.channel) },
                                         modifier = Modifier
                                             .then(
                                                 if (rowIndex == 0 && index == 0) Modifier.focusRequester(
@@ -564,7 +570,10 @@ fun CompactChannelCard(
     uiState: UiChannelState,
     channelViewModel: ChannelViewModel,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // ★ パッチ (Komorebi-fork): お気に入りバッジと長押しトグル
+    isFavorite: Boolean = false,
+    onLongClick: (() -> Unit)? = null
 ) {
     val colors = KomorebiTheme.colors
     var isFocused by remember { mutableStateOf(false) }
@@ -588,6 +597,7 @@ fun CompactChannelCard(
 
     Surface(
         onClick = onClick,
+        onLongClick = onLongClick,
         modifier = modifier
             .width(140.dp)
             .height(76.dp)
@@ -641,6 +651,19 @@ fun CompactChannelCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = if (isFocused) colors.textPrimary else colors.textPrimary.copy(alpha = 0.8f)
+                )
+            }
+
+            // ★ パッチ (Komorebi-fork): お気に入りバッジ
+            if (isFavorite) {
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = "お気に入り",
+                    tint = colors.accent,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .size(14.dp)
                 )
             }
 
