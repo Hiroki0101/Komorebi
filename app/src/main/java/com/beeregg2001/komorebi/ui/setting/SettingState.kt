@@ -59,6 +59,8 @@ class SettingPreferences(
     val mpeg2UsedDecoder: String,
     // ★ パッチ (Komorebi-fork): v11 トグル
     val mpeg2TranscodedPlayback: Boolean,
+    // ★ パッチ (Komorebi-fork): v11.1 変換対象チャンネル (null = 未設定で BS 全チャンネルが既定)
+    val mpeg2TranscodeChannels: Set<String>?,
     val geminiApiKey: String,
     val geminiApiKeyStatus: String,
     val enableAiNormalization: String,
@@ -98,6 +100,18 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         try {
             val type = object : TypeToken<Set<String>>() {}.type
             gson.fromJson<Set<String>>(favoriteTeamsJson, type) ?: emptySet()
+        } catch (e: Exception) {
+            emptySet()
+        }
+    }
+
+    // ★ パッチ (Komorebi-fork): v11.1 変換対象チャンネル (未保存の空文字は null = 未設定として扱う)
+    val mpeg2TranscodeChannelsJson = repository.mpeg2TranscodeChannelsJson.collectAsState(initial = "").value
+    val mpeg2TranscodeChannelsSet = remember(mpeg2TranscodeChannelsJson) {
+        if (mpeg2TranscodeChannelsJson.isEmpty()) null
+        else try {
+            val type = object : TypeToken<List<String>>() {}.type
+            gson.fromJson<List<String>>(mpeg2TranscodeChannelsJson, type)?.toSet() ?: emptySet()
         } catch (e: Exception) {
             emptySet()
         }
@@ -171,6 +185,7 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         mpeg2SoftwareCandidates = mpeg2Diag.softwareCandidates,
         mpeg2UsedDecoder = mpeg2Diag.usedDecoder,
         mpeg2TranscodedPlayback = repository.mpeg2TranscodedPlayback.collectAsState(initial = false).value,
+        mpeg2TranscodeChannels = mpeg2TranscodeChannelsSet,
         geminiApiKey = repository.geminiApiKey.collectAsState(initial = "").value,
         geminiApiKeyStatus = repository.geminiApiKeyStatus.collectAsState(initial = "").value,
         enableAiNormalization = repository.enableAiNormalization.collectAsState(initial = "OFF").value,
