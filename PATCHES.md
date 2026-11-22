@@ -128,7 +128,9 @@
 
 1. Android Studio でこのフォークを開き、Update Project（Ctrl+T、Merge を選択）で
    最新を取り込む
-2. Build → Generate APKs でビルド
+2. **release ビルドで作る**（Build → Generate Signed App Bundle or APK、
+   署名は debug.keystore のまま）。debug ビルドは UI が全体的にもっさりする
+   （2026-11-22 に実機で確認： release 化で改善）。署名が同じなので上書き可
 3. 視聴端末に合う APK を上書きインストールする
    （Google TV Streamer は armeabi-v7a 版）
 - 前提： `app/src/main/res/font/` の notosansjp_* フォント6ファイル
