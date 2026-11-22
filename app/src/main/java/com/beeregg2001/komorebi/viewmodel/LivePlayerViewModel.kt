@@ -675,11 +675,14 @@ class LivePlayerViewModel @Inject constructor(
                     delay(if (isAutoRetry) 0 else 600)
 
                     val audioOutputMode = settingsRepository.audioOutputMode.first()
+                    // ★ パッチ (Komorebi-fork): v8 MPEG-2 ソフトウェアデコード設定
+                    val mpeg2SoftwareDecode = settingsRepository.mpeg2SoftwareDecode.first()
                     // ★ 追加: Cloudflare Zero Trust サービストークン (未設定なら空Map)
                     val cfAccessHeaders = settingsRepository.getCfAccessHeaders()
                     val newPlayer = withContext(Dispatchers.Main) {
                         livePlayerFactory.createExoPlayer(
                             audioOutputMode = audioOutputMode,
+                            mpeg2SoftwareDecode = mpeg2SoftwareDecode,
                             isKonomiTvSource = { mainCurrentSource == StreamSource.KONOMITV },
                             onSubtitleDataReceived = { pts, data ->
                                 decodeAndEmitMainSubtitle(pts, data)
@@ -792,11 +795,14 @@ class LivePlayerViewModel @Inject constructor(
                     delay(if (isAutoRetry) 0 else 600)
 
                     val audioOutputMode = settingsRepository.audioOutputMode.first()
+                    // ★ パッチ (Komorebi-fork): v8 MPEG-2 ソフトウェアデコード設定
+                    val mpeg2SoftwareDecode = settingsRepository.mpeg2SoftwareDecode.first()
                     // ★ 追加: Cloudflare Zero Trust サービストークン (未設定なら空Map)
                     val cfAccessHeaders = settingsRepository.getCfAccessHeaders()
                     val newDualPlayer = withContext(Dispatchers.Main) {
                         livePlayerFactory.createExoPlayer(
                             audioOutputMode = audioOutputMode,
+                            mpeg2SoftwareDecode = mpeg2SoftwareDecode,
                             isKonomiTvSource = { dualCurrentSource == StreamSource.KONOMITV },
                             onSubtitleDataReceived = { pts, data ->
                                 decodeAndEmitDualSubtitle(pts, data)
