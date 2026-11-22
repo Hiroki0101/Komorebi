@@ -824,12 +824,15 @@ fun HomeDisplaySettingsContent(
     excludePaid: String,
     pickupTime: String,
     startupTab: String,
+    // ★ パッチ (Komorebi-fork): お気に入りチャンネル設定
+    favoriteChannelCount: Int,
     modeR: FocusRequester,
     colorR: FocusRequester,
     startR: FocusRequester,
     genreR: FocusRequester,
     timeR: FocusRequester,
     exPaidR: FocusRequester,
+    favR: FocusRequester,
     sidebarR: FocusRequester,
     onMode: () -> Unit,
     onColor: () -> Unit,
@@ -837,6 +840,7 @@ fun HomeDisplaySettingsContent(
     onG: () -> Unit,
     onTime: () -> Unit,
     onExPaid: () -> Unit,
+    onFavChannels: () -> Unit,
     onClick: (FocusRequester) -> Unit
 ) {
     val isTimeLinked = themeSeason == "KOMOREBI" || themeSeason == "KYLE"
@@ -961,9 +965,24 @@ fun HomeDisplaySettingsContent(
                     .focusProperties {
                         left = sidebarR
                         up = timeR
-                        down = FocusRequester.Cancel
+                        down = favR
                     },
                 onClick = { onClick(exPaidR); onExPaid() })
+        }
+        // ★ パッチ (Komorebi-fork): お気に入りチャンネルの選択
+        SettingsSection("チャンネル") {
+            SettingItem(
+                "お気に入りチャンネル",
+                if (favoriteChannelCount == 0) "未登録" else "${favoriteChannelCount}件",
+                Icons.Default.Star,
+                modifier = Modifier
+                    .focusRequester(favR)
+                    .focusProperties {
+                        left = sidebarR
+                        up = exPaidR
+                        down = FocusRequester.Cancel
+                    },
+                onClick = { onClick(favR); onFavChannels() })
         }
     }
 }
