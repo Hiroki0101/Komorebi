@@ -93,6 +93,37 @@
 - 変更ファイル（1件）： `ui/video/player/VideoPlayerManager.kt`
 - 状態： 実機確認待ち
 
+## v6： おまかせ再生（ランダム再生）
+
+- 仕様（2026-11-22 にユーザーと設計確定）：
+  - 入口は2か所。ホーム先頭の横長カードと、録画一覧トップバーの「おまかせ」ボタン。
+    どちらも `RecordViewModel.requestOmakase()` を呼ぶだけで、選出結果は
+    MainRootScreen が拾って再生を開始する（開始時にトーストで番組名を表示）
+  - 選出は端末内DBから（`data/OmakaseSelector.kt`）。録画中とキーフレーム未解析
+    （一覧からも再生不可）は常時除外。条件は段階的に緩める：
+    ジャンル一致＋視聴済み除外 → ジャンル不問＋視聴済み除外 → 全部
+  - ジャンルは `EpgGenre.major` への部分一致（ピックアップと同じ方式）。
+    既定は「バラエティ」。「見終わった」は再生位置が全体の9割以上
+  - 途中まで見た番組は続きから再生。見終わったものが選ばれた場合は最初から
+  - 前回のおまかせ選出は、候補が2件以上ある場合に限って次回の候補から外す
+  - 連続再生はなし。おまかせ経由の再生（`MainRootState.omakaseSession`）だけ、
+    再生が最後まで終わったら自動でプレイヤーを閉じてホームタブへ戻る
+    （プレイヤーに終了通知コールバックを追加。途中で戻ればフラグは解除される）
+  - ホームでは、おまかせカードが常設の最上段になる（初期フォーカスと
+    上キー→タブ移動もカードが引き受ける）
+  - 設定は 設定→一般→「おまかせ再生」セクション：対象ジャンル（選択ダイアログ、
+    既定バラエティ）と視聴済み除外 ON/OFF（既定 ON）。
+    保存キー： `omakase_genre` / `omakase_exclude_watched` / `omakase_last_program_id`
+- 変更ファイル（16件）： `data/OmakaseSelector.kt`（新規）、
+  `data/repository/SettingsRepository.kt`、`viewmodel/RecordViewModel.kt`、
+  `viewmodel/HomeViewModel.kt`、`ui/main/MainRootState.kt`、`ui/main/MainRootScreen.kt`、
+  `ui/video/player/VideoPlayerManager.kt`、`ui/video/player/VideoPlayerScreen.kt`、
+  `ui/home/HomeContents.kt`、`ui/home/components/HomeSections.kt`、
+  `ui/video/RecordListState.kt`、`ui/video/components/RecordScreenTopBar.kt`、
+  `ui/video/RecordListScreen.kt`、`ui/setting/SettingState.kt`、
+  `ui/setting/SettingContents.kt`、`ui/setting/SettingScreen.kt`
+- 状態： 実機確認待ち
+
 ## ビルド・更新手順
 
 1. Android Studio でこのフォークを開き、Update Project（Ctrl+T、Merge を選択）で
