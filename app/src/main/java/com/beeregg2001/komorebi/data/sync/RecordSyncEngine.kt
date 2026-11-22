@@ -571,7 +571,12 @@ class RecordSyncEngine @Inject constructor(
                         }
 
                         // ★ パッチ (Komorebi-fork): サーバー側で消えた録画をローカルDBからも消す
-                        deleteOrphanRecords()
+                        // 設定で無効化されている場合はスキップする
+                        if (settingsRepository.orphanSweepEnabled.first()) {
+                            deleteOrphanRecords()
+                        } else {
+                            Log.i(TAG, "smartSync: orphan sweep skipped (disabled in settings).")
+                        }
 
                         isSyncSuccessful = true
 
@@ -615,6 +620,24 @@ class RecordSyncEngine @Inject constructor(
      * - 削除対象がローカル件数の半分を超える場合（サーバー側の異常応答を疑い、
      *   大掃除は従来どおり手動の完全同期に委ねる）
      */
+    /** ★ パッチ (Komorebi-fork): スイープの実行結果を設定に残す (設定画面での見える化用)。 */
+    private suspend fun recordSweepResult(deleted: Int, aborted: Boolean) {
+        runCatching {
+            settingsRepository.saveString(
+                SettingsRepository.ORPHAN_SWEEP_LAST_RUN_AT,
+                System.currentTimeMillis().toString()
+            )
+            settingsRepository.saveString(
+                SettingsRepository.ORPHAN_SWEEP_LAST_DELETED,
+                deleted.toString()
+            )
+            settingsRepository.saveBoolean(
+                SettingsRepository.ORPHAN_SWEEP_LAST_ABORTED,
+                aborted
+            )
+        }
+    }
+
     private suspend fun deleteOrphanRecords() {
         val programDao = db.recordedProgramDao()
         val fetchedIds = mutableSetOf<Int>()
@@ -644,6 +667,7 @@ class RecordSyncEngine @Inject constructor(
 
         if (!reachedEnd) {
             Log.w(TAG, "smartSync: orphan sweep aborted (incomplete fetch).")
+            recordSweepResult(0, true)
             return
         }
         if (serverTotal > 0 && fetchedIds.size != serverTotal) {
@@ -652,12 +676,16 @@ class RecordSyncEngine @Inject constructor(
                 "smartSync: orphan sweep aborted (count mismatch: fetched=" +
                     fetchedIds.size + ", total=" + serverTotal + ")."
             )
+            recordSweepResult(0, true)
             return
         }
 
         val localIds = programDao.getAllIds()
         val idsToDelete = localIds.toSet() - fetchedIds
-        if (idsToDelete.isEmpty()) return
+        if (idsToDelete.isEmpty()) {
+            recordSweepResult(0, false)
+            return
+        }
 
         if (idsToDelete.size * 2 > localIds.size) {
             Log.w(
@@ -665,6 +693,7 @@ class RecordSyncEngine @Inject constructor(
                 "smartSync: orphan sweep aborted (would delete " + idsToDelete.size +
                     " of " + localIds.size + " records). Run a full sync to reconcile."
             )
+            recordSweepResult(0, true)
             return
         }
 
@@ -672,6 +701,7 @@ class RecordSyncEngine @Inject constructor(
         idsToDelete.chunked(900).forEach { chunk ->
             programDao.deleteByIds(chunk)
         }
+        recordSweepResult(idsToDelete.size, false)
     }
 
     private suspend fun startDictionaryResolutionLoop() {
