@@ -255,6 +255,12 @@
   旧版、静的 API 版）に変更。実物で mpeg2video の含有を確認済み。
   あわせて、libmpv と libVLC が両方同梱する libc++_shared.so の重複を
   packaging の pickFirsts で解決（mergeReleaseNativeLibs 対策）。
+  ただし pickFirsts では libVLC 側の古い libc++ が勝ってしまい、
+  libmpv.so が要求する std::to_chars(float) シンボルが無く
+  UnsatisfiedLinkError になることが実機で判明（2026-11-22）。
+  対策として libmpv 0.5.1 同梱の libc++_shared.so を
+  app/src/main/jniLibs/<abi>/ に配置して最優先で読ませる
+  （この2ファイルはバイナリのため Git 管理外、zip で別途配置する）。
   実効ライセンスは GPL 系（個人フォークのため実害なし）
 - 仕様: v9 の実験トグルの行き先を VLC 画面から新規
   `MpvOriginalPlayerScreen` に差し替え（VLC 画面のコードは温存）。
