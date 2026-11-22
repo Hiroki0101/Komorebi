@@ -77,6 +77,13 @@ fun GeneralSettingsContent(
     onToggleOrphanSweep: (Boolean) -> Unit,
     orphanSweepR: FocusRequester,
     orphanResultR: FocusRequester,
+    // ★ パッチ (Komorebi-fork): おまかせ再生の設定
+    omakaseGenre: String,
+    omakaseExcludeWatched: Boolean,
+    onSelectOmakaseGenre: () -> Unit,
+    onToggleOmakaseExcludeWatched: (Boolean) -> Unit,
+    omakaseGenreR: FocusRequester,
+    omakaseExcludeR: FocusRequester,
     sidebarR: FocusRequester,
     onClick: (FocusRequester) -> Unit
 ) {
@@ -214,9 +221,39 @@ fun GeneralSettingsContent(
                     .focusProperties {
                         left = sidebarR
                         up = clearChannelR
-                        down = FocusRequester.Cancel
+                        down = omakaseGenreR
                     },
                 onClick = { onClick(clearHistoryR); onClearHistory() })
+        }
+
+        // ★ パッチ (Komorebi-fork): おまかせ再生の設定
+        SettingsSection("おまかせ再生") {
+            SettingItem(
+                title = "対象ジャンル",
+                value = omakaseGenre,
+                icon = Icons.Default.Shuffle,
+                modifier = Modifier
+                    .focusRequester(omakaseGenreR)
+                    .focusProperties {
+                        left = sidebarR
+                        up = clearHistoryR
+                        down = omakaseExcludeR
+                    },
+                onClick = { onClick(omakaseGenreR); onSelectOmakaseGenre() }
+            )
+            SettingItem(
+                title = "視聴済みを除外",
+                value = if (omakaseExcludeWatched) "ON" else "OFF",
+                icon = Icons.Default.VisibilityOff,
+                modifier = Modifier
+                    .focusRequester(omakaseExcludeR)
+                    .focusProperties {
+                        left = sidebarR
+                        up = omakaseGenreR
+                        down = FocusRequester.Cancel
+                    },
+                onClick = { onClick(omakaseExcludeR); onToggleOmakaseExcludeWatched(!omakaseExcludeWatched) }
+            )
         }
     }
 }

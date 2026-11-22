@@ -48,6 +48,9 @@ class SettingPreferences(
     val orphanSweepLastRunAt: Long,
     val orphanSweepLastDeleted: Int,
     val orphanSweepLastAborted: Boolean,
+    // ★ パッチ (Komorebi-fork): おまかせ再生の設定
+    val omakaseGenre: String,
+    val omakaseExcludeWatched: Boolean,
     val geminiApiKey: String,
     val geminiApiKeyStatus: String,
     val enableAiNormalization: String,
@@ -149,6 +152,8 @@ fun rememberSettingPreferences(repository: SettingsRepository): SettingPreferenc
         orphanSweepLastRunAt = repository.orphanSweepLastRunAt.collectAsState(initial = "").value.toLongOrNull() ?: 0L,
         orphanSweepLastDeleted = repository.orphanSweepLastDeleted.collectAsState(initial = "").value.toIntOrNull() ?: 0,
         orphanSweepLastAborted = repository.orphanSweepLastAborted.collectAsState(initial = false).value,
+        omakaseGenre = repository.omakaseGenre.collectAsState(initial = "バラエティ").value,
+        omakaseExcludeWatched = repository.omakaseExcludeWatched.collectAsState(initial = true).value,
         geminiApiKey = repository.geminiApiKey.collectAsState(initial = "").value,
         geminiApiKeyStatus = repository.geminiApiKeyStatus.collectAsState(initial = "").value,
         enableAiNormalization = repository.enableAiNormalization.collectAsState(initial = "OFF").value,
