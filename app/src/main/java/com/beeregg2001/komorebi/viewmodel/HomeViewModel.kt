@@ -115,6 +115,10 @@ class HomeViewModel @Inject constructor(
     val pickupGenreLabel = settingsRepository.homePickupGenre
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "アニメ")
 
+    // ★ パッチ (Komorebi-fork): おまかせ再生カードの表示用 (現在の対象ジャンル)
+    val omakaseGenreLabel: StateFlow<String> = settingsRepository.omakaseGenre
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "バラエティ")
+
     val excludePaidBroadcasts = settingsRepository.excludePaidBroadcasts
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "ON")
 

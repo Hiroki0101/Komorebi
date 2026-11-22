@@ -35,6 +35,10 @@ class MainRootState {
     var selectedChannel by mutableStateOf<Channel?>(null)
     var selectedProgram by mutableStateOf<RecordedProgram?>(null)
 
+    // ★ パッチ (Komorebi-fork): おまかせ再生で開始した再生かどうか。
+    // true の間は、再生が最後まで終わったら自動でプレイヤーを閉じてホームへ戻る。
+    var omakaseSession by mutableStateOf(false)
+
     // SMB動画を保持
     var selectedSmbItem by mutableStateOf<SmbItem?>(null)
     var initialPlaybackPositionMs by mutableLongStateOf(0L)
