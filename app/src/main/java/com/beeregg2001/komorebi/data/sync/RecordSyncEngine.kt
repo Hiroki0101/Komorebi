@@ -44,6 +44,10 @@ import javax.inject.Singleton
 private const val TAG = "RecordSyncEngine"
 private const val KNOWN_RECORD_STOP_THRESHOLD = 1
 
+// ★ パッチ (Komorebi-fork): smartSync の孤児削除スイープ用定数
+private const val ORPHAN_SWEEP_PAGE_SIZE = 100
+private const val ORPHAN_SWEEP_MAX_PAGES = 200
+
 data class SyncProgress(
     val isSyncing: Boolean = false,
     val isInitialBuild: Boolean = false,
@@ -528,40 +532,46 @@ class RecordSyncEngine @Inject constructor(
 
                         val response = recordProvider.getRecordedPrograms(page = 1)
                         val apiPrograms = response.recordedPrograms
-                        if (apiPrograms.isEmpty()) return@withContext
 
-                        val entities = apiPrograms.map { RecordDataMapper.toEntity(it) }
-                        val pageIds = entities.map { it.id }
-                        val localEntitiesMap = programDao.getByIds(pageIds).associateBy { it.id }
+                        // ★ パッチ (Komorebi-fork): サーバー側が0件でも孤児削除は行うため、
+                        // 空応答での早期リターンをやめ、差分反映は番組がある場合だけ行う。
+                        if (apiPrograms.isNotEmpty()) {
+                            val entities = apiPrograms.map { RecordDataMapper.toEntity(it) }
+                            val pageIds = entities.map { it.id }
+                            val localEntitiesMap = programDao.getByIds(pageIds).associateBy { it.id }
 
-                        val allPageItemsMatch =
-                            entities.size == localEntitiesMap.size && entities.all { entity ->
-                                val local = localEntitiesMap[entity.id]
-                                local != null &&
-                                        local.title == entity.title &&
-                                        local.isRecording == entity.isRecording
+                            val allPageItemsMatch =
+                                entities.size == localEntitiesMap.size && entities.all { entity ->
+                                    val local = localEntitiesMap[entity.id]
+                                    local != null &&
+                                            local.title == entity.title &&
+                                            local.isRecording == entity.isRecording
+                                }
+
+                            val hasLocalRecording = localEntitiesMap.values.any { it.isRecording }
+
+                            if (!allPageItemsMatch || hasLocalRecording) {
+                                val dictionary = aiSeriesDictionaryDao.getAllDictionary()
+                                    .associate { it.originalTitle to it.normalizedSeriesName }
+
+                                val enrichedEntities = entities.map { entity ->
+                                    val baseTitle = TitleNormalizer.extractDisplayTitle(entity.title)
+                                    val finalSeriesName = dictionary[entity.title] ?: baseTitle
+                                    entity.copy(seriesName = finalSeriesName)
+                                }
+
+                                db.withTransaction { programDao.upsertAll(enrichedEntities) }
+                                Log.i(
+                                    TAG,
+                                    "smartSync: Detected changes or stuck recordings. Updated DB."
+                                )
+                            } else {
+                                Log.i(TAG, "smartSync: No changes detected. Skipped.")
                             }
-
-                        val hasLocalRecording = localEntitiesMap.values.any { it.isRecording }
-
-                        if (!allPageItemsMatch || hasLocalRecording) {
-                            val dictionary = aiSeriesDictionaryDao.getAllDictionary()
-                                .associate { it.originalTitle to it.normalizedSeriesName }
-
-                            val enrichedEntities = entities.map { entity ->
-                                val baseTitle = TitleNormalizer.extractDisplayTitle(entity.title)
-                                val finalSeriesName = dictionary[entity.title] ?: baseTitle
-                                entity.copy(seriesName = finalSeriesName)
-                            }
-
-                            db.withTransaction { programDao.upsertAll(enrichedEntities) }
-                            Log.i(
-                                TAG,
-                                "smartSync: Detected changes or stuck recordings. Updated DB."
-                            )
-                        } else {
-                            Log.i(TAG, "smartSync: No changes detected. Skipped.")
                         }
+
+                        // ★ パッチ (Komorebi-fork): サーバー側で消えた録画をローカルDBからも消す
+                        deleteOrphanRecords()
 
                         isSyncSuccessful = true
 
@@ -588,6 +598,79 @@ class RecordSyncEngine @Inject constructor(
 
         } finally {
             smartSyncMutex.unlock()
+        }
+    }
+
+    /**
+     * ★ パッチ (Komorebi-fork): サーバー側で削除された録画をローカルDBからも削除する（孤児削除）。
+     *
+     * 背景: 本家の孤児削除は初期構築時と明示的な完全同期のときしか走らないため、
+     * サーバー側 (KonomiTV 等) でファイルごと削除された録画がローカルDBに残り続け、
+     * 再生できないゴーストとして表示される。小規模ライブラリでは全件IDの取得コストが
+     * 小さいため、15分間隔の定期同期 (smartSync) のたびに掃除できるようにする。
+     *
+     * 安全策（いずれかに該当したら何も消さずに終了する）:
+     * - 全ページを取得しきれなかった場合（通信エラーは呼び出し側の catch で中断される）
+     * - サーバー申告の総数 (total) と取得件数が食い違う場合（取得中の増減など）
+     * - 削除対象がローカル件数の半分を超える場合（サーバー側の異常応答を疑い、
+     *   大掃除は従来どおり手動の完全同期に委ねる）
+     */
+    private suspend fun deleteOrphanRecords() {
+        val programDao = db.recordedProgramDao()
+        val fetchedIds = mutableSetOf<Int>()
+        var serverTotal = -1
+        var page = 1
+        var reachedEnd = false
+
+        while (page <= ORPHAN_SWEEP_MAX_PAGES) {
+            currentCoroutineContext().ensureActive()
+            val response = recordProvider.getRecordedPrograms(
+                page = page,
+                limit = ORPHAN_SWEEP_PAGE_SIZE
+            )
+            if (serverTotal < 0) serverTotal = response.total
+            val programs = response.recordedPrograms
+            if (programs.isEmpty()) {
+                reachedEnd = true
+                break
+            }
+            fetchedIds.addAll(programs.map { it.id })
+            if (serverTotal > 0 && fetchedIds.size >= serverTotal) {
+                reachedEnd = true
+                break
+            }
+            page++
+        }
+
+        if (!reachedEnd) {
+            Log.w(TAG, "smartSync: orphan sweep aborted (incomplete fetch).")
+            return
+        }
+        if (serverTotal > 0 && fetchedIds.size != serverTotal) {
+            Log.w(
+                TAG,
+                "smartSync: orphan sweep aborted (count mismatch: fetched=" +
+                    fetchedIds.size + ", total=" + serverTotal + ")."
+            )
+            return
+        }
+
+        val localIds = programDao.getAllIds()
+        val idsToDelete = localIds.toSet() - fetchedIds
+        if (idsToDelete.isEmpty()) return
+
+        if (idsToDelete.size * 2 > localIds.size) {
+            Log.w(
+                TAG,
+                "smartSync: orphan sweep aborted (would delete " + idsToDelete.size +
+                    " of " + localIds.size + " records). Run a full sync to reconcile."
+            )
+            return
+        }
+
+        Log.i(TAG, "smartSync: Deleting " + idsToDelete.size + " orphan records.")
+        idsToDelete.chunked(900).forEach { chunk ->
+            programDao.deleteByIds(chunk)
         }
     }
 
