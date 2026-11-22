@@ -96,6 +96,10 @@ fun GeneralSettingsContent(
     mpeg2TranscodedPlayback: Boolean,
     onToggleMpeg2TranscodedPlayback: (Boolean) -> Unit,
     mpeg2TranscodedR: FocusRequester,
+    // ★ パッチ (Komorebi-fork): v11.1 変換対象チャンネル (null = 未設定)
+    mpeg2TranscodeChannels: Set<String>?,
+    onOpenTranscodeChannels: () -> Unit,
+    transcodeChannelsR: FocusRequester,
     sidebarR: FocusRequester,
     onClick: (FocusRequester) -> Unit
 ) {
@@ -312,9 +316,23 @@ fun GeneralSettingsContent(
                     .focusProperties {
                         left = sidebarR
                         up = mpeg2SwDecodeR
-                        down = FocusRequester.Cancel
+                        down = transcodeChannelsR
                     },
                 onClick = { onClick(mpeg2TranscodedR); onToggleMpeg2TranscodedPlayback(!mpeg2TranscodedPlayback) }
+            )
+            // ★ パッチ (Komorebi-fork): v11.1 ライブの変換対象チャンネル (多選ダイアログで選ぶ)
+            SettingItem(
+                title = "変換対象チャンネル",
+                value = if (mpeg2TranscodeChannels == null) "BS全チャンネル" else "${mpeg2TranscodeChannels.size}件",
+                icon = Icons.Default.LiveTv,
+                modifier = Modifier
+                    .focusRequester(transcodeChannelsR)
+                    .focusProperties {
+                        left = sidebarR
+                        up = mpeg2TranscodedR
+                        down = FocusRequester.Cancel
+                    },
+                onClick = { onClick(transcodeChannelsR); onOpenTranscodeChannels() }
             )
         }
     }
