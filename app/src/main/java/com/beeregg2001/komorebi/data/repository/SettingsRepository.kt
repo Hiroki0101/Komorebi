@@ -77,6 +77,13 @@ class SettingsRepository @Inject constructor(
 
         // ★ パッチ (Komorebi-fork): お気に入りチャンネルの登録上限
         const val FAVORITE_CHANNEL_MAX = 8
+
+        // ★ パッチ (Komorebi-fork): 孤児スイープ (定期同期での孤児削除) の
+        // 有効/無効と、設定画面で見える化するための最終実行結果
+        val ORPHAN_SWEEP_ENABLED = booleanPreferencesKey("orphan_sweep_enabled")
+        val ORPHAN_SWEEP_LAST_RUN_AT = stringPreferencesKey("orphan_sweep_last_run_at")
+        val ORPHAN_SWEEP_LAST_DELETED = stringPreferencesKey("orphan_sweep_last_deleted")
+        val ORPHAN_SWEEP_LAST_ABORTED = booleanPreferencesKey("orphan_sweep_last_aborted")
         val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         val GEMINI_API_KEY_STATUS = stringPreferencesKey("gemini_api_key_status")
         val ENABLE_AI_NORMALIZATION = stringPreferencesKey("enable_ai_normalization")
@@ -189,6 +196,15 @@ class SettingsRepository @Inject constructor(
         context.dataStore.data.map { it[FAVORITE_BASEBALL_TEAMS] ?: "[]" }
     val favoriteChannels: Flow<String> =
         context.dataStore.data.map { it[FAVORITE_CHANNELS] ?: "[]" }
+    // ★ パッチ (Komorebi-fork): 孤児スイープ設定 (既定は有効)
+    val orphanSweepEnabled: Flow<Boolean> =
+        context.dataStore.data.map { it[ORPHAN_SWEEP_ENABLED] ?: true }
+    val orphanSweepLastRunAt: Flow<String> =
+        context.dataStore.data.map { it[ORPHAN_SWEEP_LAST_RUN_AT] ?: "" }
+    val orphanSweepLastDeleted: Flow<String> =
+        context.dataStore.data.map { it[ORPHAN_SWEEP_LAST_DELETED] ?: "" }
+    val orphanSweepLastAborted: Flow<Boolean> =
+        context.dataStore.data.map { it[ORPHAN_SWEEP_LAST_ABORTED] ?: false }
     val geminiApiKey: Flow<String> = context.dataStore.data.map { it[GEMINI_API_KEY] ?: "" }
 
     // ★ 追加: GeminiのAPIキーが実際に有効か検証した結果("VALID"/"INVALID"/"UNVERIFIED"/未検証時は空文字)
