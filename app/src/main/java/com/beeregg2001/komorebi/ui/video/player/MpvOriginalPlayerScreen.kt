@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import com.beeregg2001.komorebi.common.MpvExperimentLog
 import com.beeregg2001.komorebi.common.UrlBuilder
 import com.beeregg2001.komorebi.common.safeRequestFocus
 import com.beeregg2001.komorebi.data.model.RecordedProgram
@@ -106,14 +107,18 @@ fun MpvOriginalPlayerScreen(
                 try {
                     MPVLib.attachSurface(surface)
                     session.attached = true
-                } catch (e: Exception) {
+                    MpvExperimentLog.record(context, "surfaceアタッチ完了")
+                } catch (e: Throwable) {
+                    MpvExperimentLog.record(context, "アタッチ例外: ${e.javaClass.simpleName}: ${e.message}")
                 }
             }
             if (session.attached && !session.loaded) {
                 try {
                     MPVLib.command(arrayOf("loadfile", streamUrl))
                     session.loaded = true
-                } catch (e: Exception) {
+                    MpvExperimentLog.record(context, "loadfile発行")
+                } catch (e: Throwable) {
+                    MpvExperimentLog.record(context, "loadfile例外: ${e.javaClass.simpleName}: ${e.message}")
                 }
             }
         }
@@ -122,6 +127,7 @@ fun MpvOriginalPlayerScreen(
     if (streamUrl.isNotEmpty()) {
         DisposableEffect(streamUrl) {
             var disposed = false
+            var startLogged = false
             val observer = object : MPVLib.EventObserver {
                 override fun eventProperty(property: String) {}
 
@@ -130,6 +136,10 @@ fun MpvOriginalPlayerScreen(
                         "time-pos" -> {
                             timeSec = value
                             isBuffering = false
+                            if (!startLogged) {
+                                startLogged = true
+                                MpvExperimentLog.record(context, "再生開始 (time-pos受信)")
+                            }
                         }
 
                         "duration" -> durationSec = value
@@ -151,7 +161,9 @@ fun MpvOriginalPlayerScreen(
                 override fun event(eventId: Int) {}
             }
             try {
+                MpvExperimentLog.record(context, "create開始")
                 MPVLib.create(context.applicationContext)
+                MpvExperimentLog.record(context, "create完了")
                 // ★ 実験の核心: ハードウェアデコードを使わず、mpv 内蔵 FFmpeg の
                 // ソフトウェアデコード (mpeg2video) で再生させる
                 MPVLib.setOptionString("hwdec", "no")
@@ -164,15 +176,19 @@ fun MpvOriginalPlayerScreen(
                     MPVLib.setOptionString("start", (initialPositionMs / 1000.0).toString())
                 }
                 MPVLib.init()
+                MpvExperimentLog.record(context, "init完了")
                 MPVLib.addObserver(observer)
                 MPVLib.observeProperty("time-pos", MPV_FORMAT_INT64)
                 MPVLib.observeProperty("duration", MPV_FORMAT_INT64)
                 MPVLib.observeProperty("pause", MPV_FORMAT_FLAG)
                 MPVLib.observeProperty("paused-for-cache", MPV_FORMAT_FLAG)
                 MPVLib.observeProperty("eof-reached", MPV_FORMAT_FLAG)
+                MpvExperimentLog.record(context, "監視開始")
                 session.ready = true
                 startPlayback()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                // UnsatisfiedLinkError 等の Error 系もここで捕まえて落とさない
+                MpvExperimentLog.record(context, "初期化例外: ${e.javaClass.simpleName}: ${e.message}")
                 onShowToast("mpv実験プレイヤー: 初期化に失敗しました")
             }
 
