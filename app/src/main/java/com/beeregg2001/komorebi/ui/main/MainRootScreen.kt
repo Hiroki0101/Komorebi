@@ -323,6 +323,36 @@ fun MainRootScreen(
     val isSettingsInitialized by settingsViewModel.isSettingsInitialized.collectAsState()
     val watchHistory by homeViewModel.watchHistory.collectAsState()
     val recentRecordings by recordViewModel.recentRecordings.collectAsState()
+
+    // ★ パッチ (Komorebi-fork): おまかせ再生のリクエスト結果を拾って再生を開始する。
+    // 入口はホーム先頭カードと録画一覧トップバーで、どちらも
+    // recordViewModel.requestOmakase() を呼ぶだけ。ここで一元的に再生へつなぐ。
+    val omakasePick by recordViewModel.omakasePick.collectAsState()
+    LaunchedEffect(omakasePick) {
+        when (val pick = omakasePick) {
+            is RecordViewModel.OmakasePick.Found -> {
+                state.selectedChannel = null; state.selectedSmbItem = null
+                state.isPlayerMiniListOpen = false; state.playerIsSubMenuOpen = false
+                state.isPlayerSubMenuOpen = false; state.isPlayerSceneSearchOpen = false
+                state.isMiniPlayerMode = false
+                state.initialPlaybackPositionMs = (pick.resumePositionSec * 1000).toLong()
+                state.selectedProgram = pick.program
+                state.lastSelectedProgramId = pick.program.id.toString()
+                state.lastPlayedRecordingId = pick.program.id
+                state.showPlayerControls = true; state.isReturningFromPlayer = false
+                state.omakaseSession = true
+                state.toastMessage = "おまかせ再生: ${pick.program.title}"
+                recordViewModel.consumeOmakasePick()
+            }
+
+            is RecordViewModel.OmakasePick.Empty -> {
+                state.toastMessage = "対象の録画がありません"
+                recordViewModel.consumeOmakasePick()
+            }
+
+            null -> Unit
+        }
+    }
     val lastChannels by homeViewModel.lastWatchedChannelFlow.collectAsState(initial = emptyList())
     val conditions by reserveViewModel.conditions.collectAsState()
     val reserves by reserveViewModel.reserves.collectAsState()
@@ -685,6 +715,20 @@ fun MainRootScreen(
                                         state.selectedProgram = null
                                         state.isReturningFromPlayer = true
                                         state.isMiniPlayerMode = false
+                                        // ★ パッチ (Komorebi-fork): 途中で閉じたらおまかせ扱いを解除
+                                        state.omakaseSession = false
+                                    },
+                                    // ★ パッチ (Komorebi-fork): おまかせ再生は見終わったら
+                                    // プレイヤーを閉じてホームタブへ戻る
+                                    onPlaybackEnded = {
+                                        if (state.omakaseSession) {
+                                            state.omakaseSession = false
+                                            state.selectedProgram = null
+                                            state.isReturningFromPlayer = false
+                                            state.isMiniPlayerMode = false
+                                            val homeIndex = tabs.indexOf("ホーム")
+                                            if (homeIndex != -1) state.currentTabIndex = homeIndex
+                                        }
                                     },
                                     onShowToast = { state.toastMessage = it },
                                     isPiPMode = state.isMiniPlayerMode,
