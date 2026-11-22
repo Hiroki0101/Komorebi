@@ -88,6 +88,10 @@ fun GeneralSettingsContent(
     mpeg2SoftwareDecode: Boolean,
     onToggleMpeg2SoftwareDecode: (Boolean) -> Unit,
     mpeg2SwDecodeR: FocusRequester,
+    // ★ パッチ (Komorebi-fork): MPEG-2 デコード診断の表示値
+    mpeg2AllCandidates: String,
+    mpeg2SoftwareCandidates: String,
+    mpeg2UsedDecoder: String,
     sidebarR: FocusRequester,
     onClick: (FocusRequester) -> Unit
 ) {
@@ -274,6 +278,25 @@ fun GeneralSettingsContent(
                         down = FocusRequester.Cancel
                     },
                 onClick = { onClick(mpeg2SwDecodeR); onToggleMpeg2SoftwareDecode(!mpeg2SoftwareDecode) }
+            )
+            // ★ パッチ (Komorebi-fork): v8.2 デコード診断 (表示のみ・フォーカス不可)
+            SettingItem(
+                title = "MPEG-2デコーダ候補",
+                value = mpeg2AllCandidates.ifEmpty { "未取得" },
+                enabled = false,
+                onClick = {}
+            )
+            SettingItem(
+                title = "うちソフトウェア",
+                value = mpeg2SoftwareCandidates.ifEmpty { "未取得" },
+                enabled = false,
+                onClick = {}
+            )
+            SettingItem(
+                title = "使用中のデコーダ",
+                value = mpeg2UsedDecoder.ifEmpty { "未再生" },
+                enabled = false,
+                onClick = {}
             )
         }
     }
