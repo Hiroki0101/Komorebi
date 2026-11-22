@@ -211,8 +211,8 @@ class SettingsViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(5000),
         true
     )
-    // ★ パッチ (Komorebi-fork): v9 実験 (MainRoot のプレイヤー振り分けから参照される)
-    val vlcOriginalExperiment: StateFlow<Boolean> = settingsRepository.vlcOriginalExperiment.stateIn(
+    // ★ パッチ (Komorebi-fork): v11 (VideoPlayerViewModel の画質判定から参照される)
+    val mpeg2TranscodedPlayback: StateFlow<Boolean> = settingsRepository.mpeg2TranscodedPlayback.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         false
