@@ -178,6 +178,13 @@
   復活させ、従来動作に戻した（トグルと診断表示は温存。ソフト
   デコーダを持つ端末では引き続き有効）。BS の無変換視聴は Fire TV
   Stick／BenQ 側で、Streamer では変換画質で見るのが現実解
+- 補足（FFmpeg 拡張を掘った最終結論）： Jellyfin 製 FFmpeg 拡張は
+  映像側が実質スタブだった。ExperimentalFfmpegVideoRenderer は
+  supportsFormat が常時非対応・createDecoder が null を返し、
+  FfmpegVideoDecoder クラス自体が AAR に存在しない。ネイティブ
+  ライブラリの JNI も音声専用で、映像デコード用関数は無い
+  （mpeg2video の文字列は FFmpeg 本体側のもの）。「対応表に MPEG-2 を
+  足せば動く」類の話ではなく、この部品で MPEG-2 映像を回す道はない
 
 ## ビルド・更新手順
 
