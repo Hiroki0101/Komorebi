@@ -172,22 +172,18 @@ fun LastWatchedSection(
                             HomeHeroInfo(
                                 title = liveChannel?.programPresent?.title ?: channel.name,
                                 subtitle = channel.name,
-                                description = buildString {
-                                    append(
-                                        liveChannel?.programPresent?.description
-                                            ?: if (isFavorite) "お気に入りに登録したチャンネルです。"
-                                            else "前回視聴していたチャンネルです。"
-                                    )
-                                    // ★ パッチ (Komorebi-fork): お気に入り局は次の番組も添える
-                                    if (isFavorite) {
-                                        liveChannel?.programFollowing?.let { following ->
-                                            val start = formatProgramStartTime(following.startTime)
-                                            append("\n次: ")
-                                            if (start.isNotEmpty()) append(start + "〜 ")
-                                            append("『" + following.title + "』")
-                                        }
+                                description = liveChannel?.programPresent?.description
+                                    ?: if (isFavorite) "お気に入りに登録したチャンネルです。"
+                                    else "前回視聴していたチャンネルです。",
+                                // ★ パッチ (Komorebi-fork): お気に入り局は次の番組を独立した行で出す
+                                // (説明文の末尾に足す方式は最大3行の切り捨てで見えなかった)
+                                nextProgramText = if (isFavorite) {
+                                    liveChannel?.programFollowing?.let { following ->
+                                        val start = formatProgramStartTime(following.startTime)
+                                        "次: " + (if (start.isNotEmpty()) start + "〜 " else "") +
+                                            "『" + following.title + "』"
                                     }
-                                },
+                                } else null,
                                 channelId = channel.id,
                                 isThumbnail = false,
                                 tag = if (isFavorite) "お気に入り" else "前回視聴"
